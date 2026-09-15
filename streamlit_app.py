@@ -347,7 +347,7 @@ Hier zijn de analyses van de leerlingen:
 {analyses}
 """
 
-  with st.spinner("Jullie analyse wordt nagekeken..."):
+    with st.spinner("Jullie analyse wordt nagekeken..."):
 
     try:
         response = client.models.generate_content(

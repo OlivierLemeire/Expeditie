@@ -1,5 +1,6 @@
 import streamlit as st
 from google import genai
+from pathlib import Path
 
 
 # --------------------------------------------------
@@ -16,7 +17,116 @@ client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 
 # --------------------------------------------------
-# TITEL EN INTRODUCTIE
+# BIG FIVE
+# --------------------------------------------------
+
+TREKKEN = [
+    "Extraversie",
+    "Vriendelijkheid",
+    "Emotionele stabiliteit",
+    "Zorgvuldigheid",
+    "Openheid voor ervaringen"
+]
+
+UITLEG = {
+    "Extraversie":
+        "De mate waarin iemand nieuwe sociale contacten legt. "
+        "1 = eerder introvert | 10 = sterk extravert",
+
+    "Vriendelijkheid":
+        "De mate waarin iemand bereid is anderen te helpen en te vertrouwen. "
+        "1 = eerder afstandelijk | 10 = sterk vriendelijk",
+
+    "Emotionele stabiliteit":
+        "De mate waarin iemand goed omgaat met stress en problemen. "
+        "1 = eerder neurotisch/stressgevoelig | 10 = emotioneel stabiel",
+
+    "Zorgvuldigheid":
+        "De mate waarin iemand georganiseerd en ordelijk is. "
+        "1 = eerder onzorgvuldig | 10 = sterk zorgvuldig",
+
+    "Openheid voor ervaringen":
+        "De mate waarin iemand openstaat voor nieuwe ervaringen. "
+        "1 = eerder gesloten | 10 = sterk open voor nieuwe ervaringen"
+}
+
+
+# --------------------------------------------------
+# PERSONAGES
+# --------------------------------------------------
+
+personages = [
+    {
+        "naam": "Noor",
+        "afbeelding": "images/noor.png",
+        "beschrijving": """
+Noor probeert graag onbekende dingen uit en bedenkt vaak originele oplossingen.
+In een groep neemt ze gemakkelijk het woord en krijgt ze anderen enthousiast.
+Ze begint echter regelmatig aan iets nieuws voordat het vorige af is.
+Als iets mislukt, maakt ze zich daar meestal niet lang druk over.
+"""
+    },
+    {
+        "naam": "Elias",
+        "afbeelding": "images/elias.png",
+        "beschrijving": """
+Elias houdt van duidelijke afspraken en maakt graag vooraf een planning.
+Hij voert taken nauwkeurig uit en merkt snel wanneer anderen zich niet aan afspraken houden.
+Hij praat niet veel in grote groepen en kiest liever voor een aanpak waarvan bewezen is
+dat die werkt. Als anderen slordig werken, kan hij nogal kritisch reageren.
+"""
+    },
+    {
+        "naam": "Aya",
+        "afbeelding": "images/aya.png",
+        "beschrijving": """
+Aya merkt snel wanneer iemand zich niet goed voelt en probeert conflicten te vermijden.
+Ze helpt anderen vaak zonder dat ze daarom vragen.
+Zelf neemt ze niet snel de leiding en vindt ze het lastig om iemand tegen te spreken.
+In nieuwe situaties is ze aanvankelijk onzeker en piekert ze gemakkelijk over wat er mis kan gaan.
+"""
+    },
+    {
+        "naam": "Mats",
+        "afbeelding": "images/mats.png",
+        "beschrijving": """
+Mats blijft meestal kalm, ook wanneer anderen in paniek raken.
+Hij neemt snel beslissingen en durft risico's te nemen.
+Hij vindt discussies niet erg en zegt rechtstreeks wat hij denkt,
+ook wanneer anderen dat onaangenaam vinden.
+Hij heeft weinig geduld voor lange vergaderingen of uitgebreide plannen.
+"""
+    },
+    {
+        "naam": "Lina",
+        "afbeelding": "images/lina.png",
+        "beschrijving": """
+Lina is nieuwsgierig en observeert eerst goed voordat ze iets doet.
+Ze vindt het interessant om uit te zoeken hoe dingen werken
+en kan lang geconcentreerd aan een probleem werken.
+Ze heeft weinig behoefte om voortdurend met anderen bezig te zijn.
+Wanneer iets belangrijk is, kan ze zich er wel behoorlijk zorgen over maken.
+"""
+    }
+]
+
+
+# --------------------------------------------------
+# SESSION STATE
+# --------------------------------------------------
+
+if "personage_index" not in st.session_state:
+    st.session_state.personage_index = 0
+
+if "resultaten" not in st.session_state:
+    st.session_state.resultaten = {}
+
+if "feedback" not in st.session_state:
+    st.session_state.feedback = {}
+
+
+# --------------------------------------------------
+# TITEL
 # --------------------------------------------------
 
 st.title("🏝️ Expeditie Eiland")
@@ -26,256 +136,182 @@ st.write(
     "Voor je ontdekt hoe het hen vergaat, moet je eerst hun persoonlijkheid analyseren."
 )
 
-st.info(
-    "Lees de beschrijving van elk personage aandachtig. "
-    "Geef daarna voor elke persoonlijkheidsdimensie een score van 1 tot 10. "
-    "Er is niet altijd één exact juist antwoord. "
-    "Het belangrijkste is dat je je keuzes kunt verantwoorden."
-)
+
+# --------------------------------------------------
+# UITLEG
+# --------------------------------------------------
+
+with st.expander("🧠 Herhaal de vijf persoonlijkheidsdimensies"):
+
+    for trek in TREKKEN:
+        st.markdown(f"**{trek}**")
+        st.write(UITLEG[trek])
 
 
 # --------------------------------------------------
-# UITLEG BIG FIVE
+# HUIDIG PERSONAGE
 # --------------------------------------------------
 
-with st.expander("🧠 Wat betekenen de vijf persoonlijkheidsdimensies?"):
-
-    st.markdown("""
-### Extraversie — tegenover introversie
-De mate waarin iemand nieuwe sociale contacten legt.
-
-**1 =** eerder introvert en weinig behoefte aan sociale contacten  
-**10 =** sterk extravert en legt gemakkelijk nieuwe sociale contacten
-
----
-
-### Vriendelijkheid — tegenover afstandelijkheid
-De mate waarin iemand bereid is anderen te helpen en te vertrouwen.
-
-**1 =** eerder afstandelijk  
-**10 =** sterk vriendelijk, behulpzaam en vertrouwend
-
----
-
-### Emotionele stabiliteit — tegenover neuroticisme
-De mate waarin iemand goed omgaat met emotionele zaken zoals stress en problemen.
-
-**1 =** eerder neurotisch en gevoelig voor stress  
-**10 =** emotioneel zeer stabiel
-
----
-
-### Zorgvuldigheid — tegenover onzorgvuldigheid
-De mate waarin iemand georganiseerd en ordelijk is.
-
-**1 =** eerder chaotisch of onzorgvuldig  
-**10 =** sterk georganiseerd, ordelijk en zorgvuldig
-
----
-
-### Openheid voor ervaringen — tegenover geslotenheid voor ervaringen
-De mate waarin iemand openstaat voor nieuwe ervaringen.
-
-**1 =** eerder gesloten voor nieuwe ervaringen  
-**10 =** sterk open voor nieuwe ervaringen
-""")
+index = st.session_state.personage_index
 
 
 # --------------------------------------------------
-# PERSONAGES
+# EINDSCHERM
 # --------------------------------------------------
 
-personages = {
+if index >= len(personages):
 
-    "Noor": """
-Noor probeert graag onbekende dingen uit en bedenkt vaak originele oplossingen.
-In een groep neemt ze gemakkelijk het woord en krijgt ze anderen enthousiast.
-Ze begint echter regelmatig aan iets nieuws voordat het vorige af is.
-Als iets mislukt, maakt ze zich daar meestal niet lang druk over.
-""",
+    st.success("🎉 Jullie hebben alle vijf de personages geanalyseerd!")
 
-    "Elias": """
-Elias houdt van duidelijke afspraken en maakt graag vooraf een planning.
-Hij voert taken nauwkeurig uit en merkt snel wanneer anderen zich niet aan afspraken houden.
-Hij praat niet veel in grote groepen en kiest liever voor een aanpak waarvan bewezen is
-dat die werkt. Als anderen slordig werken, kan hij nogal kritisch reageren.
-""",
+    st.header("Jullie expeditieteam")
 
-    "Aya": """
-Aya merkt snel wanneer iemand zich niet goed voelt en probeert conflicten te vermijden.
-Ze helpt anderen vaak zonder dat ze daarom vragen.
-Zelf neemt ze niet snel de leiding en vindt ze het lastig om iemand tegen te spreken.
-In nieuwe situaties is ze aanvankelijk onzeker en piekert ze gemakkelijk over wat er mis kan gaan.
-""",
+    for naam, profiel in st.session_state.resultaten.items():
 
-    "Mats": """
-Mats blijft meestal kalm, ook wanneer anderen in paniek raken.
-Hij neemt snel beslissingen en durft risico's te nemen.
-Hij vindt discussies niet erg en zegt rechtstreeks wat hij denkt,
-ook wanneer anderen dat onaangenaam vinden.
-Hij heeft weinig geduld voor lange vergaderingen of uitgebreide plannen.
-""",
+        st.subheader(naam)
 
-    "Lina": """
-Lina is nieuwsgierig en observeert eerst goed voordat ze iets doet.
-Ze vindt het interessant om uit te zoeken hoe dingen werken
-en kan lang geconcentreerd aan een probleem werken.
-Ze heeft weinig behoefte om voortdurend met anderen bezig te zijn.
-Wanneer iets belangrijk is, kan ze zich er wel behoorlijk zorgen over maken.
-"""
-}
+        st.write(
+            f"**Extraversie:** {profiel['Extraversie']}/10  \n"
+            f"**Vriendelijkheid:** {profiel['Vriendelijkheid']}/10  \n"
+            f"**Emotionele stabiliteit:** {profiel['Emotionele stabiliteit']}/10  \n"
+            f"**Zorgvuldigheid:** {profiel['Zorgvuldigheid']}/10  \n"
+            f"**Openheid voor ervaringen:** {profiel['Openheid voor ervaringen']}/10"
+        )
+
+    st.info(
+        "De persoonlijkheidsprofielen zijn klaar. "
+        "In de volgende fase vertrekken deze vijf jongeren samen op expeditie."
+    )
+
+    if st.button("🔄 Opnieuw beginnen"):
+
+        st.session_state.personage_index = 0
+        st.session_state.resultaten = {}
+        st.session_state.feedback = {}
+
+        st.rerun()
 
 
 # --------------------------------------------------
-# SCORES BEWAREN
+# ANALYSE PERSONAGE
 # --------------------------------------------------
 
-scores = {}
+else:
 
+    persoon = personages[index]
+    naam = persoon["naam"]
 
-# --------------------------------------------------
-# LEERLINGEN LATEN ANALYSEREN
-# --------------------------------------------------
-
-for naam, beschrijving in personages.items():
-
-    st.divider()
+    st.caption(
+        f"Personage {index + 1} van {len(personages)}"
+    )
 
     st.header(naam)
 
-    st.write(beschrijving)
+    # Afbeelding tonen indien ze al bestaat
+    afbeelding = Path(persoon["afbeelding"])
 
-    st.markdown("#### Jullie inschatting")
+    if afbeelding.exists():
+        st.image(str(afbeelding), width=350)
 
-    extraversie = st.slider(
-        f"Extraversie — {naam}",
-        1,
-        10,
-        5,
-        key=f"{naam}_extraversie",
-        help="1 = eerder introvert | 10 = sterk extravert"
+    st.markdown("### Wie is deze persoon?")
+
+    st.write(persoon["beschrijving"])
+
+    st.markdown("### 1. Schat de persoonlijkheid in")
+
+    st.write(
+        "Geef voor elke persoonlijkheidsdimensie een score van **1 tot 10**."
     )
 
-    vriendelijkheid = st.slider(
-        f"Vriendelijkheid — {naam}",
-        1,
-        10,
-        5,
-        key=f"{naam}_vriendelijkheid",
-        help="1 = eerder afstandelijk | 10 = sterk vriendelijk, behulpzaam en vertrouwend"
-    )
+    scores = {}
 
-    emotionele_stabiliteit = st.slider(
-        f"Emotionele stabiliteit — {naam}",
-        1,
-        10,
-        5,
-        key=f"{naam}_emotionele_stabiliteit",
-        help="1 = eerder neurotisch en stressgevoelig | 10 = emotioneel zeer stabiel"
-    )
+    for trek in TREKKEN:
 
-    zorgvuldigheid = st.slider(
-        f"Zorgvuldigheid — {naam}",
-        1,
-        10,
-        5,
-        key=f"{naam}_zorgvuldigheid",
-        help="1 = eerder chaotisch of onzorgvuldig | 10 = sterk georganiseerd en zorgvuldig"
-    )
-
-    openheid = st.slider(
-        f"Openheid voor ervaringen — {naam}",
-        1,
-        10,
-        5,
-        key=f"{naam}_openheid",
-        help="1 = eerder gesloten voor nieuwe ervaringen | 10 = sterk open voor nieuwe ervaringen"
-    )
-
-    motivatie = st.text_area(
-        f"Leg kort uit waarom jullie deze scores kozen voor {naam}.",
-        placeholder=(
-            "Verwijs naar concrete informatie uit de beschrijving. "
-            "Bijvoorbeeld: 'We geven Elias een hoge score voor zorgvuldigheid "
-            "omdat hij vooraf plant en taken nauwkeurig uitvoert.'"
-        ),
-        key=f"{naam}_motivatie"
-    )
-
-    scores[naam] = {
-        "Extraversie": extraversie,
-        "Vriendelijkheid": vriendelijkheid,
-        "Emotionele stabiliteit": emotionele_stabiliteit,
-        "Zorgvuldigheid": zorgvuldigheid,
-        "Openheid voor ervaringen": openheid,
-        "Motivatie": motivatie
-    }
-
-
-# --------------------------------------------------
-# FEEDBACK
-# --------------------------------------------------
-
-st.divider()
-
-st.header("🔎 Controleer jullie analyse")
-
-st.write(
-    "Als iedereen is geanalyseerd, kunnen jullie feedback vragen. "
-    "De feedback kijkt niet naar één exact juist cijfer, maar naar de vraag "
-    "of jullie inschatting goed past bij de beschrijving."
-)
-
-if st.button("🧠 Controleer onze persoonlijkheidsanalyse"):
-
-    ontbrekende_motivaties = [
-        naam
-        for naam, profiel in scores.items()
-        if not profiel["Motivatie"].strip()
-    ]
-
-    if ontbrekende_motivaties:
-
-        st.warning(
-            "Geef eerst bij elk personage een korte motivatie. "
-            "Nog niet ingevuld: "
-            + ", ".join(ontbrekende_motivaties)
+        scores[trek] = st.slider(
+            trek,
+            min_value=1,
+            max_value=10,
+            value=5,
+            key=f"{naam}_{trek}",
+            help=UITLEG[trek]
         )
 
-    else:
 
-        analyses = ""
+    # --------------------------------------------------
+    # TWEE TREKKEN KIEZEN
+    # --------------------------------------------------
 
-        for naam, profiel in scores.items():
+    st.markdown("### 2. Verantwoord twee van jullie keuzes")
 
-            analyses += f"""
+    st.write(
+        "Kies **twee persoonlijkheidsdimensies** waarvan jullie de score "
+        "willen uitleggen."
+    )
 
-PERSONAGE: {naam}
+    gekozen_trekken = st.multiselect(
+        "Welke twee eigenschappen willen jullie verantwoorden?",
+        TREKKEN,
+        max_selections=2,
+        key=f"{naam}_gekozen_trekken"
+    )
 
-Beschrijving:
-{personages[naam]}
+    motivaties = {}
 
-Scores van de leerlingen:
-- Extraversie: {profiel['Extraversie']}/10
-- Vriendelijkheid: {profiel['Vriendelijkheid']}/10
-- Emotionele stabiliteit: {profiel['Emotionele stabiliteit']}/10
-- Zorgvuldigheid: {profiel['Zorgvuldigheid']}/10
-- Openheid voor ervaringen: {profiel['Openheid voor ervaringen']}/10
+    for trek in gekozen_trekken:
 
+        motivaties[trek] = st.text_area(
+            f"Waarom gaven jullie {naam} deze score voor {trek}?",
+            placeholder=(
+                "Verwijs naar concrete informatie uit de beschrijving..."
+            ),
+            key=f"{naam}_motivatie_{trek}"
+        )
+
+
+    # --------------------------------------------------
+    # FEEDBACKKNOP
+    # --------------------------------------------------
+
+    st.markdown("### 3. Controleer jullie analyse")
+
+    if st.button(
+        "🔎 Geef feedback",
+        key=f"feedback_knop_{naam}"
+    ):
+
+        if len(gekozen_trekken) != 2:
+
+            st.warning(
+                "Kies eerst precies twee persoonlijkheidsdimensies "
+                "die jullie willen verantwoorden."
+            )
+
+        elif any(
+            not motivaties[trek].strip()
+            for trek in gekozen_trekken
+        ):
+
+            st.warning(
+                "Schrijf eerst bij beide gekozen eigenschappen een korte motivatie."
+            )
+
+        else:
+
+            motivatie_tekst = ""
+
+            for trek in gekozen_trekken:
+
+                motivatie_tekst += f"""
+{trek}
+Score: {scores[trek]}/10
 Motivatie van de leerlingen:
-{profiel['Motivatie']}
-
-----------------------------------------
+{motivaties[trek]}
 
 """
 
-        prompt = f"""
+            prompt = f"""
 Je bent docent gedragswetenschappen voor leerlingen van ongeveer 17 jaar.
 
-De leerlingen leren vijf persoonlijkheidsdimensies kennen en hebben vijf
-fictieve personages geanalyseerd.
-
-Gebruik UITSLUITEND deze terminologie:
+De leerlingen leren deze vijf persoonlijkheidsdimensies:
 
 1. extraversie tegenover introversie
 2. vriendelijkheid tegenover afstandelijkheid
@@ -283,104 +319,112 @@ Gebruik UITSLUITEND deze terminologie:
 4. zorgvuldigheid tegenover onzorgvuldigheid
 5. openheid voor ervaringen tegenover geslotenheid voor ervaringen
 
-Een hoge score betekent telkens een hoge score op de eerstgenoemde eigenschap.
+Een hoge score betekent steeds een hoge score op de eerstgenoemde eigenschap.
 
-Dus bijvoorbeeld:
+De leerling analyseert dit fictieve personage:
 
-- 10 op extraversie = sterk extravert
-- 1 op extraversie = sterk introvert
+NAAM:
+{naam}
 
-- 10 op emotionele stabiliteit = zeer emotioneel stabiel
-- 1 op emotionele stabiliteit = eerder neurotisch en stressgevoelig
+BESCHRIJVING:
+{persoon["beschrijving"]}
 
-- 10 op openheid voor ervaringen = zeer open voor nieuwe ervaringen
-- 1 op openheid voor ervaringen = eerder gesloten voor nieuwe ervaringen
+DE SCORES VAN DE LEERLINGEN:
 
+Extraversie: {scores["Extraversie"]}/10
+Vriendelijkheid: {scores["Vriendelijkheid"]}/10
+Emotionele stabiliteit: {scores["Emotionele stabiliteit"]}/10
+Zorgvuldigheid: {scores["Zorgvuldigheid"]}/10
+Openheid voor ervaringen: {scores["Openheid voor ervaringen"]}/10
 
-DOEL VAN DE FEEDBACK
+Voor twee eigenschappen hebben de leerlingen hun keuze verantwoord:
 
-De leerlingen moeten vooral leren begrijpen wat de vijf dimensies betekenen.
-
-Geef daarom didactische feedback op zowel:
-- hun gekozen scores;
-- hun geschreven motivatie.
-
-
-BELANGRIJKE REGELS
-
-- Doe NIET alsof voor iedere eigenschap één exact juist cijfer bestaat.
-- Beoordeel vooral of laag, gemiddeld of hoog goed is ingeschat.
-- Een verschil tussen bijvoorbeeld 7 en 8 is niet belangrijk.
-- Baseer je uitsluitend op informatie uit de beschrijving.
-- Bedenk geen eigenschappen die niet in de beschrijving staan.
-- Als er te weinig informatie is om een eigenschap goed te beoordelen,
-  zeg dan expliciet dat de score onzeker is.
-- Leg steeds uit welke concrete informatie uit de beschrijving relevant is.
-- Als de motivatie van de leerlingen goed is, zeg waarom.
-- Als hun redenering niet klopt, leg kort uit waar de fout zit.
-- Als een score moeilijk te verdedigen is, zeg dan of een lagere,
-  gemiddelde of hogere score waarschijnlijk beter past.
-- Gebruik GEEN termen zoals consciëntieusheid, altruïsme of agreeableness.
-  Gebruik alleen de Nederlandstalige termen hierboven.
-- Wees kritisch. Bevestig niet automatisch elke keuze.
-- Houd de feedback overzichtelijk en beknopt.
-- Schrijf begrijpelijk voor leerlingen van ongeveer 17 jaar.
+{motivatie_tekst}
 
 
-GEEF VOOR ELK PERSONAGE DEZE STRUCTUUR:
+Geef korte, didactische feedback.
 
-### Naam van het personage
+BELANGRIJKE REGELS:
 
-**Goed gezien**
-Noem één of twee zaken die de leerlingen goed hebben geïnterpreteerd.
+- Doe niet alsof er één exact juist getal bestaat.
+- Beoordeel vooral of een lage, gemiddelde of hoge score past.
+- Een verschil zoals 7 tegenover 8 is niet belangrijk.
+- Baseer je uitsluitend op de beschrijving.
+- Verzin geen eigenschappen die niet in de tekst staan.
+- Als er weinig informatie is over een trek, zeg dat expliciet.
+- Geef feedback op ALLE vijf scores.
+- Besteed extra aandacht aan de twee eigenschappen die de leerlingen motiveerden.
+- Zeg bij die twee ook of hun redenering klopt.
+- Gebruik uitsluitend de termen uit deze opdracht.
+- Gebruik dus geen woorden als consciëntieusheid, altruïsme of agreeableness.
+- Wees kritisch maar behulpzaam.
+- Houd het antwoord kort.
 
-**Dit zouden we herbekijken**
-Bespreek scores of redeneringen die minder goed bij de beschrijving passen.
-Als alles redelijk verdedigbaar is, zeg dat.
+Gebruik deze structuur:
 
-**Tip**
-Geef één concrete tip waarmee ze hun analyse kunnen verbeteren.
+### Goed gezien
+Noem kort welke inschattingen goed passen.
 
+### Herbekijk dit
+Noem alleen scores die moeilijk te verdedigen zijn en leg kort uit waarom.
 
-Hier zijn de analyses van de leerlingen:
+### Jullie argumentatie
+Geef specifiek feedback op de twee geschreven motivaties.
 
-{analyses}
+### Advies
+Geef maximaal twee concrete veranderingen die de leerlingen eventueel kunnen maken.
 """
 
-with st.spinner("Jullie analyse wordt nagekeken..."):
+            with st.spinner("Jullie analyse wordt nagekeken..."):
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-3.5-flash-lite",
-            contents=prompt
-        )
+                try:
+
+                    response = client.models.generate_content(
+                        model="gemini-3.5-flash-lite",
+                        contents=prompt
+                    )
+
+                    st.session_state.feedback[naam] = response.text
+
+                except Exception as e:
+
+                    st.error(
+                        "Er ging iets mis bij het genereren van de feedback."
+                    )
+
+                    st.code(str(e))
+
+
+    # --------------------------------------------------
+    # FEEDBACK TONEN
+    # --------------------------------------------------
+
+    if naam in st.session_state.feedback:
 
         st.success("Feedback klaar!")
-        st.markdown(response.text)
 
-    except Exception as e:
-        st.error("Er ging iets mis bij het genereren van de feedback.")
-        st.code(str(e))
-
-
-# --------------------------------------------------
-# OVERZICHT VAN DE GEKOZEN PROFIELEN
-# --------------------------------------------------
-
-st.divider()
-
-if st.button("📋 Toon onze vijf persoonlijkheidsprofielen"):
-
-    st.subheader("Jullie huidige inschattingen")
-
-    for naam, profiel in scores.items():
-
-        st.markdown(f"### {naam}")
-
-        st.write(
-            f"Extraversie: **{profiel['Extraversie']}/10**  |  "
-            f"Vriendelijkheid: **{profiel['Vriendelijkheid']}/10**  |  "
-            f"Emotionele stabiliteit: **{profiel['Emotionele stabiliteit']}/10**  |  "
-            f"Zorgvuldigheid: **{profiel['Zorgvuldigheid']}/10**  |  "
-            f"Openheid: **{profiel['Openheid voor ervaringen']}/10**"
+        st.markdown(
+            st.session_state.feedback[naam]
         )
+
+        st.info(
+            "Bekijk jullie scores opnieuw. "
+            "Jullie mogen ze aanpassen als de feedback jullie overtuigt."
+        )
+
+        st.markdown("### 4. Klaar? Ga verder")
+
+        if st.button(
+            f"➡️ Ga verder naar het volgende personage",
+            key=f"volgende_{naam}"
+        ):
+
+            # actuele scores bewaren
+            st.session_state.resultaten[naam] = {
+                trek: st.session_state[f"{naam}_{trek}"]
+                for trek in TREKKEN
+            }
+
+            st.session_state.personage_index += 1
+
+            st.rerun()

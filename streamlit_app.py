@@ -27,30 +27,30 @@ st.info(
 
 with st.expander("🧠 Wat betekenen de Big Five?"):
     st.markdown("""
-**Openheid**  
-Hoe sterk iemand openstaat voor nieuwe ervaringen, ideeën en manieren van denken.  
-**1 =** houdt sterk van het vertrouwde en bekende  
-**10 =** zeer nieuwsgierig, creatief en experimenteel
+**Extraversie (tegenover introversie)**  
+De mate waarin iemand nieuwe sociale contacten legt.  
+**1 =** eerder introvert en minder behoefte aan sociale contacten  
+**10 =** sterk extravert en legt gemakkelijk nieuwe sociale contacten
 
-**Consciëntieusheid**  
-Hoe georganiseerd, verantwoordelijk en doelgericht iemand is.  
-**1 =** spontaan, weinig georganiseerd  
-**10 =** zeer planmatig, gedisciplineerd en plichtsbewust
+**Vriendelijkheid (tegenover afstandelijkheid)**  
+De mate waarin iemand bereid is anderen te helpen en te vertrouwen.  
+**1 =** eerder afstandelijk  
+**10 =** sterk vriendelijk, behulpzaam en vertrouwend
 
-**Extraversie**  
-Hoe sterk iemand sociale interactie, activiteit en prikkels opzoekt.  
-**1 =** eerder stil en teruggetrokken  
-**10 =** zeer sociaal, energiek en assertief
+**Emotionele stabiliteit (tegenover neuroticisme)**  
+De mate waarin iemand goed omgaat met emotionele zaken zoals stress en problemen.  
+**1 =** eerder neurotisch en gevoelig voor stress  
+**10 =** emotioneel zeer stabiel
 
-**Altruïsme / vriendelijkheid**  
-Hoe sterk iemand gericht is op samenwerking en rekening houdt met anderen.  
-**1 =** eerder competitief, kritisch of wantrouwig  
-**10 =** zeer vriendelijk, behulpzaam en coöperatief
+**Zorgvuldigheid (tegenover onzorgvuldigheid)**  
+De mate waarin iemand georganiseerd en ordelijk is.  
+**1 =** eerder chaotisch of onzorgvuldig  
+**10 =** sterk georganiseerd, ordelijk en zorgvuldig
 
-**Neuroticisme**  
-Hoe gevoelig iemand is voor stress, zorgen en negatieve emoties.  
-**1 =** emotioneel stabiel en rustig  
-**10 =** snel gespannen, bezorgd of emotioneel van slag
+**Openheid voor ervaringen (tegenover geslotenheid voor ervaringen)**  
+De mate waarin iemand openstaat voor nieuwe ervaringen.  
+**1 =** eerder gesloten voor nieuwe ervaringen  
+**10 =** sterk open voor nieuwe ervaringen
 """)
 
 # --------------------------------------------------

@@ -349,14 +349,14 @@ Hier zijn de analyses van de leerlingen:
 
     with st.spinner("Jullie analyse wordt nagekeken..."):
     
-    try:
-        response = client.models.generate_content(
-            model="gemini-3.5-flash-lite",
-            contents=prompt
-        )
+        try:
+            response = client.models.generate_content(
+                model="gemini-3.5-flash-lite",
+                contents=prompt
+            )
 
-        st.success("Feedback klaar!")
-        st.markdown(response.text)
+            st.success("Feedback klaar!")
+            st.markdown(response.text)
 
     except Exception as e:
         st.error("Er ging iets mis bij het genereren van de feedback.")

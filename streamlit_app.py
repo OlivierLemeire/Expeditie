@@ -348,7 +348,7 @@ Hier zijn de analyses van de leerlingen:
 """
 
     with st.spinner("Jullie analyse wordt nagekeken..."):
-
+    
     try:
         response = client.models.generate_content(
             model="gemini-3.5-flash-lite",

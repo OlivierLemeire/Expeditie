@@ -362,6 +362,13 @@ Na elke mislukking mogen jullie **2 scores aanpassen** en opnieuw testen.
 
             st.markdown("### Geef scores")
 
+            st.info(
+                "Zoek in het verhaal naar aanwijzingen over de persoonlijkheid van deze persoon. "
+                "Welke gedragingen wijzen op hoge of lage extraversie, vriendelijkheid, "
+                "emotionele stabiliteit, zorgvuldigheid en openheid voor ervaringen? "
+                "Gebruik die aanwijzingen om de 5 scores in te stellen."
+            )
+
             scores = {}
 
             for trek in TREKKEN:

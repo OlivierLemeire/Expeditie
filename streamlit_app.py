@@ -213,8 +213,14 @@ Jullie missie:
 
 **1.** schat hun persoonlijkheid in  
 **2.** ontdek of deze groep samen kan overleven  
-**3.** als het misloopt, onderzoek wat je aan hun persoonlijkheden kunt veranderen
+**3.** als het misloopt, pas de persoonlijkheden aan om hun kans op overleven te verhogen  
+**4.** probeer een combinatie te vinden die het eiland wél overleeft
 """)
+
+    st.info(
+        "Op het einde maakt de app automatisch een overzicht van jullie antwoorden "
+        "en aanpassingen. Dat overzicht moeten jullie indienen bij de leerkracht."
+    )
 
     groepsleden = st.text_input(
         "Namen van de groepsleden",
@@ -242,10 +248,6 @@ Jullie missie:
 
 elif st.session_state.fase == "analyse":
 
-    # --------------------------------------------------
-    # INTRO ANALYSE
-    # --------------------------------------------------
-
     if not st.session_state.analyse_intro_getoond:
 
         st.title("Fase 1 — Leer de groep kennen")
@@ -265,6 +267,8 @@ Bij elke persoon:
 - leggen jullie 2 scores kort uit;
 - krijgen jullie feedback.
 
+Zo oefenen jullie de Big Five in.
+
 Daarna testen we:
 
 ### Kunnen deze vijf persoonlijkheden samen zes maanden overleven?
@@ -276,10 +280,6 @@ Daarna testen we:
 
             st.rerun()
 
-
-    # --------------------------------------------------
-    # PERSONAGES
-    # --------------------------------------------------
 
     else:
 
@@ -299,7 +299,7 @@ Daarna testen we:
             st.success("Alle vijf persoonlijkheidsprofielen zijn klaar.")
 
             st.markdown("""
-Nu begint de echte test.
+Nu begint de overlevingsproef.
 
 ### Kunnen deze vijf jongeren met deze persoonlijkheden zes maanden overleven?
 """)
@@ -345,7 +345,7 @@ Nu begint de echte test.
             st.markdown("### Schat de persoonlijkheid in")
 
             st.info(
-                "Zoek in de beschrijving naar aanwijzingen over de persoonlijkheid. "
+                "Zoek in de beschrijving naar concrete aanwijzingen over de persoonlijkheid. "
                 "Welke gedragingen wijzen op hoge of lage extraversie, vriendelijkheid, "
                 "emotionele stabiliteit, zorgvuldigheid en openheid voor ervaringen? "
                 "Gebruik die aanwijzingen om de scores in te stellen."
@@ -420,6 +420,11 @@ Motivatie:
                     prompt = f"""
 Je bent docent gedragswetenschappen voor leerlingen van 17 jaar.
 
+BELANGRIJK:
+Schrijf je volledige antwoord uitsluitend in correct Nederlands.
+Gebruik geen Engelse titels, woorden of zinnen.
+Alle feedback moet in het Nederlands zijn.
+
 De leerlingen analyseren een fictief personage aan de hand van:
 
 - extraversie tegenover introversie
@@ -454,8 +459,9 @@ Regels:
 - Geef feedback op alle vijf scores.
 - Besteed extra aandacht aan de twee toegelichte keuzes.
 - Houd het kort en duidelijk.
+- SCHRIJF ALLES IN HET NEDERLANDS.
 
-Gebruik:
+Gebruik deze structuur:
 
 ### Goed gezien
 ### Herbekijk dit
@@ -546,7 +552,7 @@ elif st.session_state.fase == "simulatie":
         else:
 
             st.markdown(
-                "Hebben jullie veranderingen geholpen?"
+                "Hebben jullie veranderingen hun kans op overleven verhoogd?"
             )
 
         if st.button(
@@ -588,6 +594,12 @@ elif st.session_state.fase == "simulatie":
             prompt = f"""
 Je bent de verteller van een kort survivalspel voor leerlingen van 17 jaar.
 
+BELANGRIJK:
+Schrijf je volledige antwoord uitsluitend in correct Nederlands.
+Gebruik geen Engelse titels, woorden of zinnen.
+Ook alle tussenkopjes moeten in het Nederlands staan.
+SCHRIJF ALLES IN HET NEDERLANDS.
+
 Vijf jongeren moeten zes maanden overleven op een onbewoond eiland.
 
 Hun persoonlijkheidsprofielen:
@@ -604,13 +616,14 @@ REGELS:
 - Bij MISLUKT haalt de groep de zes maanden niet en sterft voor de redding.
 - Beschrijf overlijden niet grafisch.
 - Bij SLAAGT overleeft de groep en wordt ze na zes maanden gered.
-- Baseer gebeurtenissen op de persoonlijkheidsprofielen.
+- Baseer gebeurtenissen duidelijk op de persoonlijkheidsprofielen.
 - Persoonlijkheid bepaalt gedrag niet volledig.
-- Eigenschappen mogen voordelen én nadelen hebben.
+- Persoonlijkheidstrekken kunnen zowel voordelen als nadelen hebben.
 - Bij latere pogingen moet duidelijk zijn wat dankzij de aanpassingen beter gaat.
-- Houd het zeer kort.
 - Gebruik concrete problemen zoals water, voedsel, planning, stress,
   samenwerking, risico's en conflicten.
+- Houd het kort.
+- Gebruik uitsluitend Nederlands.
 
 Gebruik exact:
 
@@ -624,7 +637,7 @@ Maximaal 2 korte zinnen.
 Maximaal 2 korte zinnen.
 
 ### Uitkomst
-Maximaal 2 zinnen.
+Maximaal 2 korte zinnen.
 
 ### Waarom?
 - één kort punt
@@ -690,12 +703,22 @@ Maximaal 2 zinnen.
             )
 
             st.markdown(
-                "### Wat zouden jullie veranderen?"
+                "## Jullie beurt"
+            )
+
+            st.info(
+                "Lees eerst goed wat er tijdens deze overlevingspoging is misgegaan. "
+                "Pas daarna 2 persoonlijkheidsscores aan met als doel de kans te verhogen "
+                "dat de groep de volgende keer wél zes maanden kan overleven."
+            )
+
+            st.markdown(
+                "### Stap 1 — Kies wat jullie willen veranderen"
             )
 
             st.write(
                 "Pas **2 persoonlijkheidsscores** aan. "
-                "Per score mag je maximaal 3 punten veranderen."
+                "Per score mag je maximaal 3 punten omhoog of omlaag."
             )
 
             wijzigingen = []
@@ -707,7 +730,7 @@ Maximaal 2 zinnen.
                 )
 
                 gekozen_naam = st.selectbox(
-                    "Wie?",
+                    "Wie willen jullie aanpassen?",
                     list(
                         st.session_state.huidige_profielen.keys()
                     ),
@@ -715,7 +738,7 @@ Maximaal 2 zinnen.
                 )
 
                 gekozen_trek = st.selectbox(
-                    "Welke eigenschap?",
+                    "Welke persoonlijkheidstrek willen jullie aanpassen?",
                     TREKKEN,
                     key=f"aanp_trek_{ronde}_{i}"
                 )
@@ -744,7 +767,8 @@ Maximaal 2 zinnen.
                     min_value=minimum,
                     max_value=maximum,
                     value=oude_score,
-                    key=f"aanp_nieuw_{ronde}_{i}"
+                    key=f"aanp_nieuw_{ronde}_{i}",
+                    help=UITLEG[gekozen_trek]
                 )
 
                 wijzigingen.append({
@@ -754,11 +778,15 @@ Maximaal 2 zinnen.
                     "nieuw": nieuwe_score
                 })
 
+            st.markdown(
+                "### Stap 2 — Leg jullie strategie uit"
+            )
+
             reden = st.text_area(
-                "Waarom denken jullie dat deze veranderingen zullen helpen?",
+                "Waarom denken jullie dat deze veranderingen de kans op overleven verhogen?",
                 placeholder=(
-                    "Verbind jullie veranderingen met wat er tijdens "
-                    "de vorige overlevingsproef misging."
+                    "Lees terug wat er misging. Leg uit hoe jullie veranderingen "
+                    "dat probleem volgens jullie kunnen verkleinen."
                 ),
                 key=f"reden_{ronde}"
             )
@@ -791,7 +819,8 @@ Maximaal 2 zinnen.
                 elif not reden.strip():
 
                     st.warning(
-                        "Leg eerst uit waarom deze veranderingen volgens jullie helpen."
+                        "Leg eerst uit waarom deze veranderingen volgens jullie "
+                        "de kans op overleven verhogen."
                     )
 
                 else:
@@ -830,19 +859,19 @@ Maximaal 2 zinnen.
                 "De groep heeft zes maanden overleefd en wordt gered."
             )
 
-            st.header("Samenvatting van jullie opdracht")
+            st.header("Overzicht van jullie opdracht")
 
             st.markdown(
                 f"**Groepsleden:** {st.session_state.groepsleden}"
             )
 
             st.write(
-                "Jullie analyseerden eerst Noor, Elias, Aya, Mats en Lina "
-                "aan de hand van de vijf Big Five-persoonlijkheidstrekken."
+                "Jullie hebben eerst de persoonlijkheid van Noor, Elias, Aya, Mats en Lina "
+                "ingeschat aan de hand van de vijf Big Five-persoonlijkheidstrekken."
             )
 
             st.write(
-                "Daarna testten jullie of deze combinatie van persoonlijkheden "
+                "Daarna hebben jullie getest of deze combinatie van persoonlijkheden "
                 "zes maanden kon overleven op een onbewoond eiland."
             )
 
@@ -854,7 +883,7 @@ Maximaal 2 zinnen.
             ):
 
                 st.markdown(
-                    f"**Na mislukking {nummer}:**"
+                    f"**Na mislukte overlevingsproef {nummer}:**"
                 )
 
                 for wijziging in ronde_data["wijzigingen"]:
@@ -867,19 +896,19 @@ Maximaal 2 zinnen.
                     )
 
                 st.write(
-                    f"**Waarom:** {ronde_data['reden']}"
+                    f"**Waarom jullie dachten dat dit de kans op overleven zou verhogen:** "
+                    f"{ronde_data['reden']}"
                 )
 
             st.markdown("### Eindresultaat")
 
             st.write(
-                "Na jullie aanpassingen slaagde de groep erin "
-                "de zes maanden te overleven en werd ze gered."
+                "Na de aanpassingen slaagde de groep erin zes maanden te overleven "
+                "en werd ze uiteindelijk gered."
             )
 
             st.info(
-                "Stuur deze samenvatting door naar je leerkracht "
-                "als bewijs dat jullie de opdracht hebben uitgevoerd."
+                "Dit is het overzicht dat jullie moeten indienen bij de leerkracht."
             )
 
             if st.button("Opnieuw beginnen"):

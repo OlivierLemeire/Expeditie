@@ -233,6 +233,33 @@ BELANGRIJKE REGELS:
 - Geef geen lange algemene uitleg over de Big Five.
 - Schrijf helder en beknopt voor 17-jarige leerlingen.
 - Wees kritisch: zeg niet automatisch dat elke keuze goed is.
+- Gebruik uitsluitend de terminologie uit het handboek:
+
+- extraversie tegenover introversie
+- vriendelijkheid tegenover afstandelijkheid
+- emotionele stabiliteit tegenover neuroticisme
+- zorgvuldigheid tegenover onzorgvuldigheid
+- openheid voor ervaringen tegenover geslotenheid voor ervaringen
+
+Een hoge score betekent telkens een hoge score op de eerstgenoemde eigenschap.
+Dus:
+- 10 op emotionele stabiliteit = zeer emotioneel stabiel
+- 1 op emotionele stabiliteit = eerder neurotisch/stressgevoelig
+
+Gebruik termen als 'consciëntieusheid' en 'altruïsme' niet in je feedback.Gebruik uitsluitend de terminologie uit het handboek:
+
+- extraversie tegenover introversie
+- vriendelijkheid tegenover afstandelijkheid
+- emotionele stabiliteit tegenover neuroticisme
+- zorgvuldigheid tegenover onzorgvuldigheid
+- openheid voor ervaringen tegenover geslotenheid voor ervaringen
+
+Een hoge score betekent telkens een hoge score op de eerstgenoemde eigenschap.
+Dus:
+- 10 op emotionele stabiliteit = zeer emotioneel stabiel
+- 1 op emotionele stabiliteit = eerder neurotisch/stressgevoelig
+
+Gebruik termen als 'consciëntieusheid' en 'altruïsme' niet in je feedback.
 
 Gebruik voor ELK personage deze structuur:
 

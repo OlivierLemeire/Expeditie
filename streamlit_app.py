@@ -129,6 +129,9 @@ Wanneer iets belangrijk is, kan ze zich er wel behoorlijk zorgen over maken.
 if "fase" not in st.session_state:
     st.session_state.fase = "intro"
 
+if "analyse_intro_getoond" not in st.session_state:
+    st.session_state.analyse_intro_getoond = False
+
 if "personage_index" not in st.session_state:
     st.session_state.personage_index = 0
 
@@ -157,6 +160,7 @@ if "aanpassingsgeschiedenis" not in st.session_state:
 
 def profielen_naar_tekst(profielen):
     tekst = ""
+
     for naam, profiel in profielen.items():
         tekst += f"""
 {naam}
@@ -167,11 +171,13 @@ def profielen_naar_tekst(profielen):
 - Openheid voor ervaringen: {profiel['Openheid voor ervaringen']}/10
 
 """
+
     return tekst
 
 
 def reset_spel():
     st.session_state.fase = "intro"
+    st.session_state.analyse_intro_getoond = False
     st.session_state.personage_index = 0
     st.session_state.resultaten = {}
     st.session_state.feedback = {}
@@ -190,6 +196,7 @@ if st.session_state.fase == "intro":
     st.title("Expeditie Eiland")
 
     eiland_pad = Path("images/eiland.png")
+
     if eiland_pad.exists():
         st.image(str(eiland_pad), use_container_width=True)
 
@@ -206,10 +213,15 @@ Jullie missie:
 **4.** probeer uiteindelijk een groep te bouwen die de zes maanden haalt
 """)
 
-    st.info("Doel: bouw stap voor stap een team dat lang genoeg overleeft om gered te worden.")
+    st.info(
+        "Doel: bouw stap voor stap een team dat lang genoeg overleeft om gered te worden."
+    )
 
     if st.button("Start de expeditie"):
+
         st.session_state.fase = "analyse"
+        st.session_state.analyse_intro_getoond = False
+
         st.rerun()
 
 
@@ -219,16 +231,78 @@ Jullie missie:
 
 elif st.session_state.fase == "analyse":
 
-    index = st.session_state.personage_index
+    # --------------------------------------------------
+    # KORTE INTRO VOOR DE ANALYSE
+    # --------------------------------------------------
 
-    st.title("Fase 1 — Ken de groep")
-    st.progress(index / len(personages))
+    if not st.session_state.analyse_intro_getoond:
 
-    if index >= len(personages):
-
-        st.success("Alle vijf persoonlijkheidsprofielen zijn klaar.")
+        st.title("Fase 1 — Leer de groep kennen")
 
         st.markdown("""
+Voor jullie kunnen testen of deze groep het eiland overleeft,
+moeten jullie eerst hun **persoonlijkheid inschatten**.
+
+Daarvoor gebruiken jullie de **Big Five-persoonlijkheidstrekken**
+uit het handboek, **pagina 157–158**:
+
+- extraversie
+- vriendelijkheid
+- emotionele stabiliteit
+- zorgvuldigheid
+- openheid voor ervaringen
+
+### Wat gaan jullie doen?
+
+Jullie analyseren **5 personen**.
+
+Bij elke persoon:
+
+- geven jullie voor alle 5 trekken een score van 1 tot 10;
+- leggen jullie 2 van die scores kort uit;
+- krijgen jullie meteen feedback.
+
+Zo oefenen jullie eerst de Big Five in.
+
+Daarna begint het echte experiment:
+
+### Kunnen deze 5 persoonlijkheden samen zes maanden overleven op het eiland?
+""")
+
+        st.info(
+            "Eerst oefenen: 5 persoonlijkheden inschatten. "
+            "Daarna testen: overleeft deze groep samen?"
+        )
+
+        if st.button("Ga naar persoon 1"):
+
+            st.session_state.analyse_intro_getoond = True
+
+            st.rerun()
+
+
+    # --------------------------------------------------
+    # DE 5 PERSONAGES
+    # --------------------------------------------------
+
+    else:
+
+        index = st.session_state.personage_index
+
+        st.title("Fase 1 — Ken de groep")
+
+        st.progress(index / len(personages))
+
+
+        # --------------------------------------------------
+        # ALLE PERSONAGES KLAAR
+        # --------------------------------------------------
+
+        if index >= len(personages):
+
+            st.success("Alle vijf persoonlijkheidsprofielen zijn klaar.")
+
+            st.markdown("""
 Nu gaan we zien of deze groep het echt redt op het eiland.
 
 Er zijn **maximaal 4 pogingen**.
@@ -236,79 +310,117 @@ Er zijn **maximaal 4 pogingen**.
 Na elke mislukking mogen jullie **2 scores aanpassen** en opnieuw testen.
 """)
 
-        for naam, profiel in st.session_state.resultaten.items():
-            st.markdown(f"**{naam}**")
+            for naam, profiel in st.session_state.resultaten.items():
+
+                st.markdown(f"**{naam}**")
+
+                st.write(
+                    f"Extraversie {profiel['Extraversie']} | "
+                    f"Vriendelijkheid {profiel['Vriendelijkheid']} | "
+                    f"Emotionele stabiliteit {profiel['Emotionele stabiliteit']} | "
+                    f"Zorgvuldigheid {profiel['Zorgvuldigheid']} | "
+                    f"Openheid {profiel['Openheid voor ervaringen']}"
+                )
+
+            if st.button("Start poging 1"):
+
+                st.session_state.huidige_profielen = copy.deepcopy(
+                    st.session_state.resultaten
+                )
+
+                st.session_state.simulatieronde = 1
+                st.session_state.simulatieverhalen = {}
+                st.session_state.aanpassingsgeschiedenis = []
+                st.session_state.fase = "simulatie"
+
+                st.rerun()
+
+
+        # --------------------------------------------------
+        # ÉÉN PERSONAGE
+        # --------------------------------------------------
+
+        else:
+
+            persoon = personages[index]
+            naam = persoon["naam"]
+
+            st.caption(
+                f"Persoon {index + 1} van {len(personages)}"
+            )
+
+            st.header(naam)
+
+            afbeelding = Path(persoon["afbeelding"])
+
+            if afbeelding.exists():
+                st.image(str(afbeelding), width=340)
+
             st.write(
-                f"Extraversie {profiel['Extraversie']} | "
-                f"Vriendelijkheid {profiel['Vriendelijkheid']} | "
-                f"Emotionele stabiliteit {profiel['Emotionele stabiliteit']} | "
-                f"Zorgvuldigheid {profiel['Zorgvuldigheid']} | "
-                f"Openheid {profiel['Openheid voor ervaringen']}"
+                persoon["beschrijving"]
             )
 
-        if st.button("Start poging 1"):
-            st.session_state.huidige_profielen = copy.deepcopy(st.session_state.resultaten)
-            st.session_state.simulatieronde = 1
-            st.session_state.simulatieverhalen = {}
-            st.session_state.aanpassingsgeschiedenis = []
-            st.session_state.fase = "simulatie"
-            st.rerun()
+            st.markdown("### Geef scores")
 
-    else:
+            scores = {}
 
-        persoon = personages[index]
-        naam = persoon["naam"]
+            for trek in TREKKEN:
 
-        st.caption(f"Persoon {index + 1} van {len(personages)}")
-        st.header(naam)
+                scores[trek] = st.slider(
+                    trek,
+                    min_value=1,
+                    max_value=10,
+                    value=5,
+                    key=f"{naam}_{trek}",
+                    help=UITLEG[trek]
+                )
 
-        afbeelding = Path(persoon["afbeelding"])
-        if afbeelding.exists():
-            st.image(str(afbeelding), width=340)
+            st.markdown("### Licht 2 keuzes toe")
 
-        st.write(persoon["beschrijving"])
-
-        st.markdown("### Geef scores")
-
-        scores = {}
-        for trek in TREKKEN:
-            scores[trek] = st.slider(
-                trek,
-                min_value=1,
-                max_value=10,
-                value=5,
-                key=f"{naam}_{trek}",
-                help=UITLEG[trek]
+            gekozen_trekken = st.multiselect(
+                "Welke 2 eigenschappen willen jullie uitleggen?",
+                TREKKEN,
+                max_selections=2,
+                key=f"{naam}_gekozen_trekken"
             )
 
-        st.markdown("### Licht 2 keuzes toe")
+            motivaties = {}
 
-        gekozen_trekken = st.multiselect(
-            "Welke 2 eigenschappen willen jullie uitleggen?",
-            TREKKEN,
-            max_selections=2,
-            key=f"{naam}_gekozen_trekken"
-        )
+            for trek in gekozen_trekken:
 
-        motivaties = {}
-        for trek in gekozen_trekken:
-            motivaties[trek] = st.text_area(
-                f"Waarom gaven jullie {naam} deze score voor {trek}?",
-                placeholder="Verwijs naar de beschrijving...",
-                key=f"{naam}_motivatie_{trek}"
-            )
+                motivaties[trek] = st.text_area(
+                    f"Waarom gaven jullie {naam} deze score voor {trek}?",
+                    placeholder="Verwijs naar de beschrijving...",
+                    key=f"{naam}_motivatie_{trek}"
+                )
 
-        if st.button("Vraag feedback", key=f"feedback_{naam}"):
+            if st.button(
+                "Vraag feedback",
+                key=f"feedback_{naam}"
+            ):
 
-            if len(gekozen_trekken) != 2:
-                st.warning("Kies precies 2 eigenschappen.")
-            elif any(not motivaties[trek].strip() for trek in gekozen_trekken):
-                st.warning("Schrijf bij beide gekozen eigenschappen een korte uitleg.")
-            else:
+                if len(gekozen_trekken) != 2:
 
-                motivatie_tekst = ""
-                for trek in gekozen_trekken:
-                    motivatie_tekst += f"""
+                    st.warning(
+                        "Kies precies 2 eigenschappen."
+                    )
+
+                elif any(
+                    not motivaties[trek].strip()
+                    for trek in gekozen_trekken
+                ):
+
+                    st.warning(
+                        "Schrijf bij beide gekozen eigenschappen een korte uitleg."
+                    )
+
+                else:
+
+                    motivatie_tekst = ""
+
+                    for trek in gekozen_trekken:
+
+                        motivatie_tekst += f"""
 {trek}
 Score: {scores[trek]}/10
 Motivatie:
@@ -316,10 +428,11 @@ Motivatie:
 
 """
 
-                prompt = f"""
+                    prompt = f"""
 Je bent docent gedragswetenschappen voor leerlingen van 17 jaar.
 
 De leerlingen analyseren een fictief personage op 5 dimensies:
+
 - extraversie tegenover introversie
 - vriendelijkheid tegenover afstandelijkheid
 - emotionele stabiliteit tegenover neuroticisme
@@ -333,6 +446,7 @@ BESCHRIJVING:
 {persoon["beschrijving"]}
 
 SCORES:
+
 Extraversie: {scores["Extraversie"]}/10
 Vriendelijkheid: {scores["Vriendelijkheid"]}/10
 Emotionele stabiliteit: {scores["Emotionele stabiliteit"]}/10
@@ -340,11 +454,13 @@ Zorgvuldigheid: {scores["Zorgvuldigheid"]}/10
 Openheid voor ervaringen: {scores["Openheid voor ervaringen"]}/10
 
 TWEE GEMOTIVEERDE KEUZES:
+
 {motivatie_tekst}
 
 Geef korte didactische feedback.
 
 Regels:
+
 - Er is niet 1 exact juist getal.
 - Beoordeel vooral laag / gemiddeld / hoog.
 - Baseer je alleen op de beschrijving.
@@ -360,27 +476,51 @@ Gebruik deze structuur:
 ### Advies
 """
 
-                with st.spinner("Feedback wordt gemaakt..."):
-                    try:
-                        response = client.models.generate_content(
-                            model="gemini-3.5-flash-lite",
-                            contents=prompt
-                        )
-                        st.session_state.feedback[naam] = response.text
-                    except Exception as e:
-                        st.error("Er ging iets mis.")
-                        st.code(str(e))
+                    with st.spinner(
+                        "Feedback wordt gemaakt..."
+                    ):
 
-        if naam in st.session_state.feedback:
-            st.markdown(st.session_state.feedback[naam])
+                        try:
 
-            if st.button("Bewaar en ga verder", key=f"volgende_{naam}"):
-                st.session_state.resultaten[naam] = {
-                    trek: st.session_state[f"{naam}_{trek}"]
-                    for trek in TREKKEN
-                }
-                st.session_state.personage_index += 1
-                st.rerun()
+                            response = client.models.generate_content(
+                                model="gemini-3.5-flash-lite",
+                                contents=prompt
+                            )
+
+                            st.session_state.feedback[naam] = response.text
+
+                        except Exception as e:
+
+                            st.error(
+                                "Er ging iets mis."
+                            )
+
+                            st.code(str(e))
+
+
+            # --------------------------------------------------
+            # FEEDBACK TONEN
+            # --------------------------------------------------
+
+            if naam in st.session_state.feedback:
+
+                st.markdown(
+                    st.session_state.feedback[naam]
+                )
+
+                if st.button(
+                    "Bewaar en ga verder",
+                    key=f"volgende_{naam}"
+                ):
+
+                    st.session_state.resultaten[naam] = {
+                        trek: st.session_state[f"{naam}_{trek}"]
+                        for trek in TREKKEN
+                    }
+
+                    st.session_state.personage_index += 1
+
+                    st.rerun()
 
 
 # ==================================================
@@ -392,12 +532,23 @@ elif st.session_state.fase == "simulatie":
     ronde = st.session_state.simulatieronde
 
     st.title("Fase 2 — Overleef het eiland")
-    st.progress(ronde / 4)
-    st.caption(f"Poging {ronde} van 4")
+
+    st.progress(
+        ronde / 4
+    )
+
+    st.caption(
+        f"Poging {ronde} van 4"
+    )
 
     with st.expander("Huidige groep bekijken"):
+
         for naam, profiel in st.session_state.huidige_profielen.items():
-            st.markdown(f"**{naam}**")
+
+            st.markdown(
+                f"**{naam}**"
+            )
+
             st.write(
                 f"Extraversie {profiel['Extraversie']} | "
                 f"Vriendelijkheid {profiel['Vriendelijkheid']} | "
@@ -406,20 +557,33 @@ elif st.session_state.fase == "simulatie":
                 f"Openheid {profiel['Openheid voor ervaringen']}"
             )
 
-    # ----------------------------------------------
+
+    # --------------------------------------------------
     # NOG NIET GESIMULEERD
-    # ----------------------------------------------
+    # --------------------------------------------------
 
     if ronde not in st.session_state.simulatieverhalen:
 
         if ronde == 1:
-            st.markdown("Test nu of jullie eerste groep de zes maanden haalt.")
+
+            st.markdown(
+                "Test nu of jullie eerste groep de zes maanden haalt."
+            )
+
         else:
-            st.markdown("Jullie hebben het team aangepast. Test nu deze nieuwe versie.")
 
-        if st.button("Test deze groep", key=f"start_test_{ronde}"):
+            st.markdown(
+                "Jullie hebben het team aangepast. Test nu deze nieuwe versie."
+            )
 
-            profielen_tekst = profielen_naar_tekst(st.session_state.huidige_profielen)
+        if st.button(
+            "Test deze groep",
+            key=f"start_test_{ronde}"
+        ):
+
+            profielen_tekst = profielen_naar_tekst(
+                st.session_state.huidige_profielen
+            )
 
             if ronde <= 3:
                 uitkomst = "MISLUKT"
@@ -427,15 +591,26 @@ elif st.session_state.fase == "simulatie":
                 uitkomst = "SLAAGT"
 
             laatste_aanpassing = ""
+
             if st.session_state.aanpassingsgeschiedenis:
+
                 laatste = st.session_state.aanpassingsgeschiedenis[-1]
+
                 laatste_aanpassing += "Laatste aanpassingen:\n"
+
                 for wijziging in laatste["wijzigingen"]:
+
                     laatste_aanpassing += (
-                        f"- {wijziging['naam']}: {wijziging['trek']} van "
-                        f"{wijziging['oud']} naar {wijziging['nieuw']}\n"
+                        f"- {wijziging['naam']}: "
+                        f"{wijziging['trek']} van "
+                        f"{wijziging['oud']} naar "
+                        f"{wijziging['nieuw']}\n"
                     )
-                laatste_aanpassing += f"\nWaarom de leerlingen dit deden:\n{laatste['reden']}"
+
+                laatste_aanpassing += (
+                    f"\nWaarom de leerlingen dit deden:\n"
+                    f"{laatste['reden']}"
+                )
 
             prompt = f"""
 Je bent de verteller van een survivalspel voor leerlingen van 17 jaar.
@@ -443,14 +618,19 @@ Je bent de verteller van een survivalspel voor leerlingen van 17 jaar.
 Vijf jongeren moeten 6 maanden overleven op een onbewoond eiland.
 
 Hun persoonlijkheidsprofielen zijn:
+
 {profielen_tekst}
 
 Dit is poging {ronde}.
-De verplichte uitkomst is: {uitkomst}
+
+De verplichte uitkomst is:
+
+{uitkomst}
 
 {laatste_aanpassing}
 
 BELANGRIJKE REGELS:
+
 - Als de uitkomst MISLUKT is, haalt de groep de 6 maanden niet en sterft voor de redding.
 - Beschrijf dat niet grafisch.
 - Als de uitkomst SLAAGT is, overleeft de groep 6 maanden en wordt gered.
@@ -481,47 +661,78 @@ maximaal 2 korte zinnen
 - punt 2
 """
 
-            with st.spinner("De simulatie loopt..."):
+            with st.spinner(
+                "De simulatie loopt..."
+            ):
+
                 try:
+
                     response = client.models.generate_content(
                         model="gemini-3.5-flash-lite",
                         contents=prompt
                     )
+
                     st.session_state.simulatieverhalen[ronde] = response.text
+
                     st.rerun()
+
                 except Exception as e:
-                    st.error("Er ging iets mis bij de simulatie.")
+
+                    st.error(
+                        "Er ging iets mis bij de simulatie."
+                    )
+
                     st.code(str(e))
 
-    # ----------------------------------------------
+
+    # --------------------------------------------------
     # RESULTAAT TONEN
-    # ----------------------------------------------
+    # --------------------------------------------------
 
     else:
 
         if ronde <= 3:
-            mislukt_pad = Path(f"images/poging{ronde}_mislukt.png")
+
+            mislukt_pad = Path(
+                f"images/poging{ronde}_mislukt.png"
+            )
+
             if mislukt_pad.exists():
-                st.image(str(mislukt_pad), use_container_width=True)
+                st.image(
+                    str(mislukt_pad),
+                    use_container_width=True
+                )
 
-        st.markdown(st.session_state.simulatieverhalen[ronde])
+        st.markdown(
+            st.session_state.simulatieverhalen[ronde]
+        )
 
-        # ------------------------------------------
+
+        # --------------------------------------------------
         # MISLUKT -> AANPASSEN
-        # ------------------------------------------
+        # --------------------------------------------------
 
         if ronde <= 3:
 
-            st.error("Deze groep haalt de zes maanden niet.")
+            st.error(
+                "Deze groep haalt de zes maanden niet."
+            )
 
-            st.markdown("### Pas nu 2 scores aan")
-            st.write("Per aanpassing mag je maximaal 3 punten omhoog of omlaag gaan.")
+            st.markdown(
+                "### Pas nu 2 scores aan"
+            )
+
+            st.write(
+                "Per aanpassing mag je maximaal 3 punten omhoog of omlaag gaan."
+            )
 
             wijzigingen = []
 
             for i in range(2):
 
-                st.markdown(f"**Aanpassing {i + 1}**")
+                st.markdown(
+                    f"**Aanpassing {i + 1}**"
+                )
 
                 gekozen_naam = st.selectbox(
                     "Wie?",
@@ -535,10 +746,20 @@ maximaal 2 korte zinnen
                     key=f"aanp_trek_{ronde}_{i}"
                 )
 
-                oude_score = st.session_state.huidige_profielen[gekozen_naam][gekozen_trek]
+                oude_score = (
+                    st.session_state
+                    .huidige_profielen[gekozen_naam][gekozen_trek]
+                )
 
-                minimum = max(1, oude_score - 3)
-                maximum = min(10, oude_score + 3)
+                minimum = max(
+                    1,
+                    oude_score - 3
+                )
+
+                maximum = min(
+                    10,
+                    oude_score + 3
+                )
 
                 nieuwe_score = st.slider(
                     "Nieuwe score",
@@ -557,25 +778,57 @@ maximaal 2 korte zinnen
 
             reden = st.text_area(
                 "Waarom denken jullie dat deze veranderingen zullen helpen?",
-                placeholder="Bijvoorbeeld: meer zorgvuldigheid kan helpen om voedsel en water beter te plannen.",
+                placeholder=(
+                    "Bijvoorbeeld: meer zorgvuldigheid kan helpen "
+                    "om voedsel en water beter te plannen."
+                ),
                 key=f"reden_{ronde}"
             )
 
-            if st.button("Bewaar veranderingen en ga naar de volgende poging", key=f"volgende_poging_{ronde}"):
+            if st.button(
+                "Bewaar veranderingen en ga naar de volgende poging",
+                key=f"volgende_poging_{ronde}"
+            ):
 
-                paren = [(w["naam"], w["trek"]) for w in wijzigingen]
+                paren = [
+                    (w["naam"], w["trek"])
+                    for w in wijzigingen
+                ]
 
                 if len(set(paren)) != len(paren):
-                    st.warning("Kies 2 verschillende aanpassingen.")
-                elif any(w["nieuw"] == w["oud"] for w in wijzigingen):
-                    st.warning("Verander bij beide keuzes de score echt.")
+
+                    st.warning(
+                        "Kies 2 verschillende aanpassingen."
+                    )
+
+                elif any(
+                    w["nieuw"] == w["oud"]
+                    for w in wijzigingen
+                ):
+
+                    st.warning(
+                        "Verander bij beide keuzes de score echt."
+                    )
+
                 elif not reden.strip():
-                    st.warning("Schrijf ook kort waarom jullie denken dat dit helpt.")
+
+                    st.warning(
+                        "Schrijf ook kort waarom jullie denken dat dit helpt."
+                    )
+
                 else:
-                    nieuwe_profielen = copy.deepcopy(st.session_state.huidige_profielen)
+
+                    nieuwe_profielen = copy.deepcopy(
+                        st.session_state.huidige_profielen
+                    )
 
                     for wijziging in wijzigingen:
-                        nieuwe_profielen[wijziging["naam"]][wijziging["trek"]] = wijziging["nieuw"]
+
+                        nieuwe_profielen[
+                            wijziging["naam"]
+                        ][
+                            wijziging["trek"]
+                        ] = wijziging["nieuw"]
 
                     st.session_state.aanpassingsgeschiedenis.append({
                         "na_ronde": ronde,
@@ -584,26 +837,36 @@ maximaal 2 korte zinnen
                     })
 
                     st.session_state.huidige_profielen = nieuwe_profielen
+
                     st.session_state.simulatieronde += 1
+
                     st.rerun()
 
-        # ------------------------------------------
+
+        # --------------------------------------------------
         # GELUKT
-        # ------------------------------------------
+        # --------------------------------------------------
 
         else:
 
-            st.success("Deze groep overleeft en wordt gered.")
+            st.success(
+                "Deze groep overleeft en wordt gered."
+            )
 
             st.markdown("""
 Jullie hebben uiteindelijk een combinatie gevonden die werkt.
 
 Denk kort na:
+
 - Welke aanpassing hielp het meest?
 - Welke eigenschap bleek vooral nuttig?
 - Bestaat er één ideale persoonlijkheid?
 """)
 
-            if st.button("Opnieuw spelen"):
+            if st.button(
+                "Opnieuw spelen"
+            ):
+
                 reset_spel()
+
                 st.rerun()

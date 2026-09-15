@@ -309,6 +309,9 @@ if "simulatieverhalen" not in st.session_state:
 if "aanpassingsgeschiedenis" not in st.session_state:
     st.session_state.aanpassingsgeschiedenis = []
 
+if "redding_onthuld" not in st.session_state:
+    st.session_state.redding_onthuld = False
+
 
 # --------------------------------------------------
 # HULPFUNCTIES
@@ -473,9 +476,9 @@ def maak_verslag():
     )
     lijnen.append("")
 
-    # -------------------------
+    # --------------------------------------------------
     # PERSOONLIJKHEIDSANALYSE
-    # -------------------------
+    # --------------------------------------------------
 
     lijnen.append("1. PERSOONLIJKHEIDSANALYSE")
     lijnen.append("")
@@ -588,9 +591,9 @@ def maak_verslag():
         lijnen.append("")
 
 
-    # -------------------------
+    # --------------------------------------------------
     # ROLLEN
-    # -------------------------
+    # --------------------------------------------------
 
     lijnen.append(
         "2. EXPEDITIEROLLEN"
@@ -611,9 +614,9 @@ def maak_verslag():
         lijnen.append("")
 
 
-    # -------------------------
+    # --------------------------------------------------
     # OVERLEVINGSAANPASSINGEN
-    # -------------------------
+    # --------------------------------------------------
 
     lijnen.append(
         "3. AANPASSINGEN TIJDENS DE EXPEDITIES"
@@ -645,9 +648,9 @@ def maak_verslag():
         lijnen.append("")
 
 
-    # -------------------------
+    # --------------------------------------------------
     # EINDPROFIEL
-    # -------------------------
+    # --------------------------------------------------
 
     lijnen.append(
         "4. UITEINDELIJKE PERSOONLIJKHEIDSPROFIELEN"
@@ -922,7 +925,6 @@ Wie krijgt welke taak?
 
                 else:
 
-                    # Eerste inschatting slechts één keer bewaren
                     if naam not in st.session_state.analyse_log:
 
                         st.session_state.analyse_log[naam] = {
@@ -1343,6 +1345,28 @@ elif st.session_state.fase == "simulatie":
                 )
 
 
+            if ronde <= 3:
+
+                eindinstructie = """
+Bij de sectie 'Uitkomst' moet duidelijk worden dat de groep het niet heeft gehaald.
+"""
+
+            else:
+
+                eindinstructie = """
+ZEER BELANGRIJK VOOR DE LAATSTE, GESLAAGDE EXPEDITIE:
+
+De leerlingen mogen nog NIET weten of er redding komt.
+Verklap dus nergens dat ze uiteindelijk gered worden.
+
+Bij de sectie 'Uitkomst' schrijf je alleen iets in deze betekenis:
+'De zes maanden zijn voorbij. De groep verzamelt zich op het strand en kijkt naar de horizon.'
+
+Maak het spannend.
+Vermeld geen schip, helikopter, reddingsteam of redding.
+"""
+
+
             prompt = f"""
 Je bent de verteller van een kort survivalverhaal
 voor leerlingen van ongeveer 17 jaar.
@@ -1366,16 +1390,19 @@ EXPEDITIEROLLEN:
 
 {laatste_aanpassing}
 
-De verplichte uitkomst is:
+De verplichte uitkomst achter de schermen is:
 
 {uitkomst}
+
+{eindinstructie}
 
 REGELS:
 
 - Bij MISLUKT haalt de groep de zes maanden niet.
   Uiteindelijk sterven de groepsleden vóór de redding.
   Beschrijf dit niet grafisch.
-- Bij SLAAGT overleeft de groep zes maanden en wordt iedereen gered.
+- Bij SLAAGT overleeft de groep zes maanden.
+  De uiteindelijke redding wordt PAS LATER aan de leerlingen onthuld.
 - Baseer het verloop duidelijk op de persoonlijkheidsprofielen.
 - Houd ook rekening met de expeditierollen.
 - Persoonlijkheid bepaalt gedrag niet volledig.
@@ -1444,6 +1471,10 @@ Maximaal 2 korte zinnen.
 
     else:
 
+        # --------------------------------------------------
+        # MISLUKTE EXPEDITIES
+        # --------------------------------------------------
+
         if ronde <= 3:
 
             mislukt_pad = Path(
@@ -1458,17 +1489,10 @@ Maximaal 2 korte zinnen.
                 )
 
 
-        st.markdown(
-            st.session_state
-            .simulatieverhalen[ronde]
-        )
-
-
-        # --------------------------------------------------
-        # MISLUKT
-        # --------------------------------------------------
-
-        if ronde <= 3:
+            st.markdown(
+                st.session_state
+                .simulatieverhalen[ronde]
+            )
 
             st.error(
                 "Deze expeditie overleeft de zes maanden niet."
@@ -1638,70 +1662,108 @@ Maximaal 2 korte zinnen.
 
                     st.session_state.simulatieronde += 1
 
+                    st.session_state.redding_onthuld = False
+
                     st.rerun()
 
 
         # --------------------------------------------------
-        # GERED
+        # LAATSTE EXPEDITIE — NOG GEEN REDDING TONEN
         # --------------------------------------------------
 
         else:
 
-            gered_pad = Path(
-                "images/gered.png"
+            st.markdown(
+                st.session_state
+                .simulatieverhalen[ronde]
             )
 
-            if gered_pad.exists():
+            if not st.session_state.redding_onthuld:
 
-                st.image(
-                    str(gered_pad),
-                    use_container_width=True
+                st.markdown(
+                    "## De zes maanden zijn voorbij..."
                 )
 
-            st.success(
-                "De groep heeft zes maanden overleefd en wordt gered."
-            )
+                st.write(
+                    "De groep staat op het strand en kijkt naar de horizon."
+                )
 
-            st.markdown("""
+                if st.button(
+                    "Ontdek of jullie dit keer wel gered zijn"
+                ):
+
+                    st.session_state.redding_onthuld = True
+
+                    st.rerun()
+
+
+            # --------------------------------------------------
+            # REDDING ONTHULD
+            # --------------------------------------------------
+
+            else:
+
+                gered_pad = Path(
+                    "images/gered.png"
+                )
+
+                if gered_pad.exists():
+
+                    st.image(
+                        str(gered_pad),
+                        use_container_width=True
+                    )
+
+                st.success(
+                    "Ze hebben het gehaald. De groep wordt gered."
+                )
+
+                st.markdown("""
+Na zes maanden verschijnt eindelijk hulp.
+
 Jullie zijn erin geslaagd een groep samen te stellen
-die lang genoeg kon samenwerken, verkennen en overleven
-om de redding te halen.
+die lang genoeg kon samenwerken, verkennen en overleven.
 """)
 
 
-            # --------------------------------------------------
-            # EINDVERSLAG
-            # --------------------------------------------------
+                # --------------------------------------------------
+                # EINDVERSLAG
+                # --------------------------------------------------
 
-            st.header(
-                "Overzicht om in te dienen"
-            )
+                st.header(
+                    "Overzicht om in te dienen"
+                )
 
-            st.write(
-                "Dit overzicht toont niet alleen het eindresultaat, "
-                "maar ook jullie eerste persoonlijkheidsinschattingen, "
-                "argumentaties en aanpassingen na feedback."
-            )
+                st.write(
+                    "Dit overzicht toont jullie eerste persoonlijkheidsinschattingen, "
+                    "argumentaties, aanpassingen na feedback, expeditierollen "
+                    "en de veranderingen tijdens de overlevingsproeven."
+                )
 
-            verslag = maak_verslag()
+                st.info(
+                    "Download hieronder het overzicht en dien het daarna in "
+                    "via de uploadzone van het vak **Gedragswetenschappen**."
+                )
 
-            st.text_area(
-                "Kopieer dit overzicht en dien het in",
-                value=verslag,
-                height=650
-            )
+                verslag = maak_verslag()
 
-            st.download_button(
-                label="Download het overzicht",
-                data=verslag,
-                file_name="expeditie_eiland_overzicht.txt",
-                mime="text/plain"
-            )
+                st.text_area(
+                    "Bekijk jullie overzicht",
+                    value=verslag,
+                    height=650
+                )
 
-            if st.button(
-                "Opnieuw beginnen"
-            ):
+                st.download_button(
+                    label="Download het overzicht",
+                    data=verslag,
+                    file_name="expeditie_eiland_overzicht.txt",
+                    mime="text/plain"
+                )
 
-                reset_spel()
+                if st.button(
+                    "Opnieuw beginnen"
+                ):
 
-                st.rerun()
+                    reset_spel()
+
+                    st.rerun()

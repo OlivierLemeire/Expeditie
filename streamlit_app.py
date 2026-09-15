@@ -1,7 +1,7 @@
 import streamlit as st
-from openai import OpenAI
+from google import genai
 
-client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 st.title("🏝️ Expeditie Eiland")
 
@@ -50,8 +50,8 @@ Schrijf begrijpelijk voor leerlingen van ongeveer 17 jaar.
 """
 
     with st.spinner("De expeditie wordt gesimuleerd..."):
-        response = client.responses.create(
-            model="gpt-5.6-luna",
+        response = client.interactions.create(
+            model="gemini-3.8-flash",
             input=prompt
         )
 

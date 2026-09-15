@@ -141,57 +141,30 @@ st.title("🏝️ Expeditie Eiland")
 
 if st.session_state.fase == "intro":
 
-    st.header("Welkom bij de opdracht")
-
     eiland_pad = Path("images/eiland.png")
+
     if eiland_pad.exists():
-        st.image(str(eiland_pad), width=700)
+        st.image(str(eiland_pad), use_container_width=True)
 
     st.markdown("""
-Een groep jongeren was met een klein vliegtuig onderweg naar een afgelegen gebied.
-Onderweg gaat het mis: het vliegtuig stort neer en de jongeren stranden op een
-**onbewoond eiland**.
+Een groep jongeren is met een klein vliegtuig neergestort op een afgelegen,
+onbewoond eiland.
 
-Er is geen gsm-bereik, er is geen onmiddellijke hulp en er zijn nauwelijks bruikbare materialen.
-De jongeren zullen dus **zelf moeten zien te overleven**:
-ze moeten drinkbaar water vinden, voedsel zoeken, een schuilplaats bouwen,
-taken verdelen, conflicten oplossen en mentaal sterk blijven.
+Er is geen gsm-bereik en hulp is voorlopig niet onderweg.
 
-De grote vraag in deze opdracht is:
+Ze zullen **zes maanden lang zelf moeten zien te overleven**.
 
-### Welke persoonlijkheden hebben de meeste kans om op een onbewoond eiland een half jaar te overleven?
+Ze moeten voedsel vinden, drinkbaar water zoeken, een schuilplaats bouwen,
+taken verdelen, samenwerken en omgaan met stress en conflicten.
 
-Om dat te onderzoeken, gaan jullie eerst de persoonlijkheid van vijf jongeren analyseren.
-Dat doen jullie aan de hand van vijf persoonlijkheidsdimensies:
+## Welke persoonlijkheden zouden hier het best kunnen overleven?
 
-- **Extraversie**
-- **Vriendelijkheid**
-- **Emotionele stabiliteit**
-- **Zorgvuldigheid**
-- **Openheid voor ervaringen**
-
-Bij elk personage geven jullie voor deze vijf dimensies een score.
-Daarna krijgen jullie feedback op jullie analyse.
-
-Op het einde hebben jullie een volledig persoonlijkheidsprofiel van het hele groepje.
-Later kunnen we dan onderzoeken hoe deze groep het op het eiland zou doen.
+Ontdek het door de vijf jongeren te leren kennen en hun persoonlijkheid te analyseren.
 """)
 
-    with st.expander("🧠 Herhaal de vijf persoonlijkheidsdimensies"):
-        for trek in TREKKEN:
-            st.markdown(f"**{trek}**")
-            st.write(UITLEG[trek])
-
-    st.info(
-        "Werk personage per personage. "
-        "Bij elk personage schatten jullie alle vijf de dimensies in, "
-        "maar slechts voor twee eigenschappen moeten jullie jullie keuze kort uitleggen."
-    )
-
-    if st.button("🚀 Start de opdracht"):
+    if st.button("➡️ Ontdek de vijf jongeren"):
         st.session_state.fase = "analyse"
         st.rerun()
-
 
 # --------------------------------------------------
 # ANALYSEFASE

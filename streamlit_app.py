@@ -154,12 +154,13 @@ openheid = st.slider(
     )
 
     scores[naam] = {
-        "Openheid": openheid,
-        "Consciëntieusheid": consci,
-        "Extraversie": extra,
-        "Altruïsme": altru,
-        "Neuroticisme": neuro,
-        "Motivatie": motivatie
+    "Extraversie": extraversie,
+    "Vriendelijkheid": vriendelijkheid,
+    "Emotionele stabiliteit": emotionele_stabiliteit,
+    "Zorgvuldigheid": zorgvuldigheid,
+    "Openheid voor ervaringen": openheid,
+    "Motivatie": motivatie
+}
     }
 # --------------------------------------------------
 # FEEDBACK OP DE ANALYSE

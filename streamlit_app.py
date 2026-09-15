@@ -349,9 +349,9 @@ Hier zijn de analyses van de leerlingen:
 
     with st.spinner("Jullie analyse wordt nagekeken..."):
 
-    response = client.interactions.create(
-        model="gemini-3.8-flash",
-        input=prompt
+        response = client.interactions.create(
+            model="gemini-3.8-flash",
+            input=prompt
     )
 
 st.success("Feedback klaar!")

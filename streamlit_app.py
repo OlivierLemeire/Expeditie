@@ -30,24 +30,47 @@ TREKKEN = [
 
 UITLEG = {
     "Extraversie":
-        "De mate waarin iemand nieuwe sociale contacten legt. "
-        "1 = eerder introvert | 10 = sterk extravert",
+        "Extraversie gaat over de mate waarin iemand sociale contacten opzoekt "
+        "en gemakkelijk contact legt. "
+        "Een lage score betekent dat iemand eerder introvert is, rustiger is in groepen "
+        "en minder behoefte heeft aan veel sociale interactie. "
+        "Een hoge score betekent dat iemand eerder extravert is, gemakkelijk contact legt, "
+        "graag praat en sociaal actief is. "
+        "1 = sterk introvert | 10 = sterk extravert",
 
     "Vriendelijkheid":
-        "De mate waarin iemand bereid is anderen te helpen en te vertrouwen. "
-        "1 = eerder afstandelijk | 10 = sterk vriendelijk",
+        "Vriendelijkheid gaat over de mate waarin iemand anderen helpt, vertrouwt "
+        "en rekening houdt met anderen. "
+        "Een lage score betekent dat iemand eerder afstandelijk, kritisch, wantrouwig "
+        "of competitief is. "
+        "Een hoge score betekent dat iemand eerder behulpzaam, vriendelijk, vertrouwend "
+        "en gericht op samenwerking is. "
+        "1 = sterk afstandelijk | 10 = sterk vriendelijk",
 
     "Emotionele stabiliteit":
-        "De mate waarin iemand goed omgaat met stress en problemen. "
-        "1 = eerder neurotisch/stressgevoelig | 10 = emotioneel stabiel",
+        "Emotionele stabiliteit gaat over hoe iemand reageert op stress, problemen "
+        "en negatieve emoties. "
+        "Een lage score betekent dat iemand sneller bezorgd, gespannen of emotioneel "
+        "van slag raakt. "
+        "Een hoge score betekent dat iemand meestal rustig blijft en goed met stress "
+        "en tegenslagen omgaat. "
+        "1 = sterk stressgevoelig/neurotisch | 10 = zeer emotioneel stabiel",
 
     "Zorgvuldigheid":
-        "De mate waarin iemand georganiseerd en ordelijk is. "
-        "1 = eerder onzorgvuldig | 10 = sterk zorgvuldig",
+        "Zorgvuldigheid gaat over hoe georganiseerd, ordelijk en verantwoordelijk iemand is. "
+        "Een lage score betekent dat iemand eerder chaotisch, impulsief of slordig werkt. "
+        "Een hoge score betekent dat iemand plant, afspraken nakomt, taken afwerkt "
+        "en georganiseerd te werk gaat. "
+        "1 = sterk onzorgvuldig | 10 = zeer zorgvuldig",
 
     "Openheid voor ervaringen":
-        "De mate waarin iemand openstaat voor nieuwe ervaringen. "
-        "1 = eerder gesloten | 10 = sterk open voor nieuwe ervaringen"
+        "Openheid voor ervaringen gaat over de mate waarin iemand nieuwsgierig is "
+        "en openstaat voor nieuwe ideeën en ervaringen. "
+        "Een lage score betekent dat iemand liever vasthoudt aan bekende gewoontes "
+        "en vertrouwde oplossingen. "
+        "Een hoge score betekent dat iemand graag nieuwe dingen probeert, nieuwsgierig is "
+        "en openstaat voor andere mogelijkheden. "
+        "1 = sterk gesloten voor nieuwe ervaringen | 10 = zeer open voor nieuwe ervaringen"
 }
 
 
@@ -129,17 +152,12 @@ if "feedback" not in st.session_state:
 
 
 # --------------------------------------------------
-# TITEL
-# --------------------------------------------------
-
-st.title("🏝️ Expeditie Eiland")
-
-
-# --------------------------------------------------
 # INTRO-PAGINA
 # --------------------------------------------------
 
 if st.session_state.fase == "intro":
+
+    st.title("🏝️ Expeditie Eiland")
 
     eiland_pad = Path("images/eiland.png")
 
@@ -166,20 +184,22 @@ Ontdek het door de vijf jongeren te leren kennen en hun persoonlijkheid te analy
         st.session_state.fase = "analyse"
         st.rerun()
 
+
 # --------------------------------------------------
 # ANALYSEFASE
 # --------------------------------------------------
 
 elif st.session_state.fase == "analyse":
 
-    with st.expander("🧠 Herhaal de vijf persoonlijkheidsdimensies"):
-        for trek in TREKKEN:
-            st.markdown(f"**{trek}**")
-            st.write(UITLEG[trek])
+    st.title("🧠 Analyseer de vijf jongeren")
 
     index = st.session_state.personage_index
 
-    # EINDSCHERM
+
+    # --------------------------------------------------
+    # EINDSCHERM NA ALLE PERSONAGES
+    # --------------------------------------------------
+
     if index >= len(personages):
 
         st.success("🎉 Jullie hebben alle vijf de personages geanalyseerd!")
@@ -205,34 +225,55 @@ elif st.session_state.fase == "analyse":
         )
 
         if st.button("🔄 Opnieuw beginnen"):
+
             st.session_state.fase = "intro"
             st.session_state.personage_index = 0
             st.session_state.resultaten = {}
             st.session_state.feedback = {}
+
             st.rerun()
 
-    # PERSONAGE
+
+    # --------------------------------------------------
+    # ÉÉN PERSONAGE
+    # --------------------------------------------------
+
     else:
 
         persoon = personages[index]
         naam = persoon["naam"]
 
-        st.caption(f"Personage {index + 1} van {len(personages)}")
+        st.caption(
+            f"Personage {index + 1} van {len(personages)}"
+        )
+
         st.header(naam)
 
         afbeelding = Path(persoon["afbeelding"])
+
         if afbeelding.exists():
             st.image(str(afbeelding), width=350)
 
         st.markdown("### Wie is deze persoon?")
+
         st.write(persoon["beschrijving"])
 
+
+        # --------------------------------------------------
+        # SCORES
+        # --------------------------------------------------
+
         st.markdown("### 1. Schat de persoonlijkheid in")
-        st.write("Geef voor elke persoonlijkheidsdimensie een score van **1 tot 10**.")
+
+        st.write(
+            "Geef voor elke persoonlijkheidsdimensie een score van **1 tot 10**. "
+            "Klik op het **?** naast een eigenschap als je niet meer precies weet wat ze betekent."
+        )
 
         scores = {}
 
         for trek in TREKKEN:
+
             scores[trek] = st.slider(
                 trek,
                 min_value=1,
@@ -242,9 +283,16 @@ elif st.session_state.fase == "analyse":
                 help=UITLEG[trek]
             )
 
+
+        # --------------------------------------------------
+        # TWEE TREKKEN VERANTWOORDEN
+        # --------------------------------------------------
+
         st.markdown("### 2. Verantwoord twee van jullie keuzes")
+
         st.write(
-            "Kies **twee persoonlijkheidsdimensies** waarvan jullie de score willen uitleggen."
+            "Kies **twee persoonlijkheidsdimensies** waarvoor jullie willen uitleggen "
+            "waarom jullie deze score gaven."
         )
 
         gekozen_trekken = st.multiselect(
@@ -257,22 +305,39 @@ elif st.session_state.fase == "analyse":
         motivaties = {}
 
         for trek in gekozen_trekken:
+
             motivaties[trek] = st.text_area(
                 f"Waarom gaven jullie {naam} deze score voor {trek}?",
-                placeholder="Verwijs naar concrete informatie uit de beschrijving...",
+                placeholder=(
+                    "Verwijs naar concrete informatie uit de beschrijving..."
+                ),
                 key=f"{naam}_motivatie_{trek}"
             )
 
+
+        # --------------------------------------------------
+        # FEEDBACK
+        # --------------------------------------------------
+
         st.markdown("### 3. Controleer jullie analyse")
 
-        if st.button("🔎 Geef feedback", key=f"feedback_knop_{naam}"):
+        if st.button(
+            "🔎 Geef feedback",
+            key=f"feedback_knop_{naam}"
+        ):
 
             if len(gekozen_trekken) != 2:
+
                 st.warning(
-                    "Kies eerst precies twee persoonlijkheidsdimensies die jullie willen verantwoorden."
+                    "Kies eerst precies twee persoonlijkheidsdimensies "
+                    "die jullie willen verantwoorden."
                 )
 
-            elif any(not motivaties[trek].strip() for trek in gekozen_trekken):
+            elif any(
+                not motivaties[trek].strip()
+                for trek in gekozen_trekken
+            ):
+
                 st.warning(
                     "Schrijf eerst bij beide gekozen eigenschappen een korte motivatie."
                 )
@@ -282,6 +347,7 @@ elif st.session_state.fase == "analyse":
                 motivatie_tekst = ""
 
                 for trek in gekozen_trekken:
+
                     motivatie_tekst += f"""
 {trek}
 Score: {scores[trek]}/10
@@ -323,6 +389,7 @@ Voor twee eigenschappen hebben de leerlingen hun keuze verantwoord:
 
 {motivatie_tekst}
 
+
 Geef korte, didactische feedback.
 
 BELANGRIJKE REGELS:
@@ -359,6 +426,7 @@ Geef maximaal twee concrete veranderingen die de leerlingen eventueel kunnen mak
                 with st.spinner("Jullie analyse wordt nagekeken..."):
 
                     try:
+
                         response = client.models.generate_content(
                             model="gemini-3.5-flash-lite",
                             contents=prompt
@@ -367,13 +435,25 @@ Geef maximaal twee concrete veranderingen die de leerlingen eventueel kunnen mak
                         st.session_state.feedback[naam] = response.text
 
                     except Exception as e:
-                        st.error("Er ging iets mis bij het genereren van de feedback.")
+
+                        st.error(
+                            "Er ging iets mis bij het genereren van de feedback."
+                        )
+
                         st.code(str(e))
+
+
+        # --------------------------------------------------
+        # FEEDBACK TONEN
+        # --------------------------------------------------
 
         if naam in st.session_state.feedback:
 
             st.success("Feedback klaar!")
-            st.markdown(st.session_state.feedback[naam])
+
+            st.markdown(
+                st.session_state.feedback[naam]
+            )
 
             st.info(
                 "Bekijk jullie scores opnieuw. "
@@ -382,7 +462,10 @@ Geef maximaal twee concrete veranderingen die de leerlingen eventueel kunnen mak
 
             st.markdown("### 4. Klaar? Ga verder")
 
-            if st.button(f"➡️ Ga verder naar het volgende personage", key=f"volgende_{naam}"):
+            if st.button(
+                "➡️ Ga verder naar het volgende personage",
+                key=f"volgende_{naam}"
+            ):
 
                 st.session_state.resultaten[naam] = {
                     trek: st.session_state[f"{naam}_{trek}"]
@@ -390,4 +473,5 @@ Geef maximaal twee concrete veranderingen die de leerlingen eventueel kunnen mak
                 }
 
                 st.session_state.personage_index += 1
+
                 st.rerun()

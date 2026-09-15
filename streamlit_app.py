@@ -115,6 +115,9 @@ Wanneer iets belangrijk is, kan ze zich er wel behoorlijk zorgen over maken.
 # SESSION STATE
 # --------------------------------------------------
 
+if "fase" not in st.session_state:
+    st.session_state.fase = "intro"
+
 if "personage_index" not in st.session_state:
     st.session_state.personage_index = 0
 
@@ -131,176 +134,182 @@ if "feedback" not in st.session_state:
 
 st.title("🏝️ Expeditie Eiland")
 
-st.write(
-    "Vijf jongeren vertrekken samen op expeditie. "
-    "Voor je ontdekt hoe het hen vergaat, moet je eerst hun persoonlijkheid analyseren."
-)
-
 
 # --------------------------------------------------
-# UITLEG
+# INTRO-PAGINA
 # --------------------------------------------------
 
-with st.expander("🧠 Herhaal de vijf persoonlijkheidsdimensies"):
+if st.session_state.fase == "intro":
 
-    for trek in TREKKEN:
-        st.markdown(f"**{trek}**")
-        st.write(UITLEG[trek])
+    st.header("Welkom bij de opdracht")
 
+    eiland_pad = Path("images/eiland.png")
+    if eiland_pad.exists():
+        st.image(str(eiland_pad), width=700)
 
-# --------------------------------------------------
-# HUIDIG PERSONAGE
-# --------------------------------------------------
+    st.markdown("""
+Een groep jongeren was met een klein vliegtuig onderweg naar een afgelegen gebied.
+Onderweg gaat het mis: het vliegtuig stort neer en de jongeren stranden op een
+**onbewoond eiland**.
 
-index = st.session_state.personage_index
+Er is geen gsm-bereik, er is geen onmiddellijke hulp en er zijn nauwelijks bruikbare materialen.
+De jongeren zullen dus **zelf moeten zien te overleven**:
+ze moeten drinkbaar water vinden, voedsel zoeken, een schuilplaats bouwen,
+taken verdelen, conflicten oplossen en mentaal sterk blijven.
 
+De grote vraag in deze opdracht is:
 
-# --------------------------------------------------
-# EINDSCHERM
-# --------------------------------------------------
+### Welke persoonlijkheden hebben de meeste kans om op een onbewoond eiland een half jaar te overleven?
 
-if index >= len(personages):
+Om dat te onderzoeken, gaan jullie eerst de persoonlijkheid van vijf jongeren analyseren.
+Dat doen jullie aan de hand van vijf persoonlijkheidsdimensies:
 
-    st.success("🎉 Jullie hebben alle vijf de personages geanalyseerd!")
+- **Extraversie**
+- **Vriendelijkheid**
+- **Emotionele stabiliteit**
+- **Zorgvuldigheid**
+- **Openheid voor ervaringen**
 
-    st.header("Jullie expeditieteam")
+Bij elk personage geven jullie voor deze vijf dimensies een score.
+Daarna krijgen jullie feedback op jullie analyse.
 
-    for naam, profiel in st.session_state.resultaten.items():
+Op het einde hebben jullie een volledig persoonlijkheidsprofiel van het hele groepje.
+Later kunnen we dan onderzoeken hoe deze groep het op het eiland zou doen.
+""")
 
-        st.subheader(naam)
-
-        st.write(
-            f"**Extraversie:** {profiel['Extraversie']}/10  \n"
-            f"**Vriendelijkheid:** {profiel['Vriendelijkheid']}/10  \n"
-            f"**Emotionele stabiliteit:** {profiel['Emotionele stabiliteit']}/10  \n"
-            f"**Zorgvuldigheid:** {profiel['Zorgvuldigheid']}/10  \n"
-            f"**Openheid voor ervaringen:** {profiel['Openheid voor ervaringen']}/10"
-        )
+    with st.expander("🧠 Herhaal de vijf persoonlijkheidsdimensies"):
+        for trek in TREKKEN:
+            st.markdown(f"**{trek}**")
+            st.write(UITLEG[trek])
 
     st.info(
-        "De persoonlijkheidsprofielen zijn klaar. "
-        "In de volgende fase vertrekken deze vijf jongeren samen op expeditie."
+        "Werk personage per personage. "
+        "Bij elk personage schatten jullie alle vijf de dimensies in, "
+        "maar slechts voor twee eigenschappen moeten jullie jullie keuze kort uitleggen."
     )
 
-    if st.button("🔄 Opnieuw beginnen"):
-
-        st.session_state.personage_index = 0
-        st.session_state.resultaten = {}
-        st.session_state.feedback = {}
-
+    if st.button("🚀 Start de opdracht"):
+        st.session_state.fase = "analyse"
         st.rerun()
 
 
 # --------------------------------------------------
-# ANALYSE PERSONAGE
+# ANALYSEFASE
 # --------------------------------------------------
 
-else:
+elif st.session_state.fase == "analyse":
 
-    persoon = personages[index]
-    naam = persoon["naam"]
+    with st.expander("🧠 Herhaal de vijf persoonlijkheidsdimensies"):
+        for trek in TREKKEN:
+            st.markdown(f"**{trek}**")
+            st.write(UITLEG[trek])
 
-    st.caption(
-        f"Personage {index + 1} van {len(personages)}"
-    )
+    index = st.session_state.personage_index
 
-    st.header(naam)
+    # EINDSCHERM
+    if index >= len(personages):
 
-    # Afbeelding tonen indien ze al bestaat
-    afbeelding = Path(persoon["afbeelding"])
+        st.success("🎉 Jullie hebben alle vijf de personages geanalyseerd!")
 
-    if afbeelding.exists():
-        st.image(str(afbeelding), width=350)
+        st.header("Jullie expeditieteam")
 
-    st.markdown("### Wie is deze persoon?")
+        for naam, profiel in st.session_state.resultaten.items():
 
-    st.write(persoon["beschrijving"])
+            st.subheader(naam)
 
-    st.markdown("### 1. Schat de persoonlijkheid in")
-
-    st.write(
-        "Geef voor elke persoonlijkheidsdimensie een score van **1 tot 10**."
-    )
-
-    scores = {}
-
-    for trek in TREKKEN:
-
-        scores[trek] = st.slider(
-            trek,
-            min_value=1,
-            max_value=10,
-            value=5,
-            key=f"{naam}_{trek}",
-            help=UITLEG[trek]
-        )
-
-
-    # --------------------------------------------------
-    # TWEE TREKKEN KIEZEN
-    # --------------------------------------------------
-
-    st.markdown("### 2. Verantwoord twee van jullie keuzes")
-
-    st.write(
-        "Kies **twee persoonlijkheidsdimensies** waarvan jullie de score "
-        "willen uitleggen."
-    )
-
-    gekozen_trekken = st.multiselect(
-        "Welke twee eigenschappen willen jullie verantwoorden?",
-        TREKKEN,
-        max_selections=2,
-        key=f"{naam}_gekozen_trekken"
-    )
-
-    motivaties = {}
-
-    for trek in gekozen_trekken:
-
-        motivaties[trek] = st.text_area(
-            f"Waarom gaven jullie {naam} deze score voor {trek}?",
-            placeholder=(
-                "Verwijs naar concrete informatie uit de beschrijving..."
-            ),
-            key=f"{naam}_motivatie_{trek}"
-        )
-
-
-    # --------------------------------------------------
-    # FEEDBACKKNOP
-    # --------------------------------------------------
-
-    st.markdown("### 3. Controleer jullie analyse")
-
-    if st.button(
-        "🔎 Geef feedback",
-        key=f"feedback_knop_{naam}"
-    ):
-
-        if len(gekozen_trekken) != 2:
-
-            st.warning(
-                "Kies eerst precies twee persoonlijkheidsdimensies "
-                "die jullie willen verantwoorden."
+            st.write(
+                f"**Extraversie:** {profiel['Extraversie']}/10  \n"
+                f"**Vriendelijkheid:** {profiel['Vriendelijkheid']}/10  \n"
+                f"**Emotionele stabiliteit:** {profiel['Emotionele stabiliteit']}/10  \n"
+                f"**Zorgvuldigheid:** {profiel['Zorgvuldigheid']}/10  \n"
+                f"**Openheid voor ervaringen:** {profiel['Openheid voor ervaringen']}/10"
             )
 
-        elif any(
-            not motivaties[trek].strip()
-            for trek in gekozen_trekken
-        ):
+        st.info(
+            "De persoonlijkheidsprofielen zijn klaar. "
+            "In de volgende fase kunnen jullie onderzoeken hoe deze vijf jongeren "
+            "het samen op het eiland zouden doen."
+        )
 
-            st.warning(
-                "Schrijf eerst bij beide gekozen eigenschappen een korte motivatie."
+        if st.button("🔄 Opnieuw beginnen"):
+            st.session_state.fase = "intro"
+            st.session_state.personage_index = 0
+            st.session_state.resultaten = {}
+            st.session_state.feedback = {}
+            st.rerun()
+
+    # PERSONAGE
+    else:
+
+        persoon = personages[index]
+        naam = persoon["naam"]
+
+        st.caption(f"Personage {index + 1} van {len(personages)}")
+        st.header(naam)
+
+        afbeelding = Path(persoon["afbeelding"])
+        if afbeelding.exists():
+            st.image(str(afbeelding), width=350)
+
+        st.markdown("### Wie is deze persoon?")
+        st.write(persoon["beschrijving"])
+
+        st.markdown("### 1. Schat de persoonlijkheid in")
+        st.write("Geef voor elke persoonlijkheidsdimensie een score van **1 tot 10**.")
+
+        scores = {}
+
+        for trek in TREKKEN:
+            scores[trek] = st.slider(
+                trek,
+                min_value=1,
+                max_value=10,
+                value=5,
+                key=f"{naam}_{trek}",
+                help=UITLEG[trek]
             )
 
-        else:
+        st.markdown("### 2. Verantwoord twee van jullie keuzes")
+        st.write(
+            "Kies **twee persoonlijkheidsdimensies** waarvan jullie de score willen uitleggen."
+        )
 
-            motivatie_tekst = ""
+        gekozen_trekken = st.multiselect(
+            "Welke twee eigenschappen willen jullie verantwoorden?",
+            TREKKEN,
+            max_selections=2,
+            key=f"{naam}_gekozen_trekken"
+        )
 
-            for trek in gekozen_trekken:
+        motivaties = {}
 
-                motivatie_tekst += f"""
+        for trek in gekozen_trekken:
+            motivaties[trek] = st.text_area(
+                f"Waarom gaven jullie {naam} deze score voor {trek}?",
+                placeholder="Verwijs naar concrete informatie uit de beschrijving...",
+                key=f"{naam}_motivatie_{trek}"
+            )
+
+        st.markdown("### 3. Controleer jullie analyse")
+
+        if st.button("🔎 Geef feedback", key=f"feedback_knop_{naam}"):
+
+            if len(gekozen_trekken) != 2:
+                st.warning(
+                    "Kies eerst precies twee persoonlijkheidsdimensies die jullie willen verantwoorden."
+                )
+
+            elif any(not motivaties[trek].strip() for trek in gekozen_trekken):
+                st.warning(
+                    "Schrijf eerst bij beide gekozen eigenschappen een korte motivatie."
+                )
+
+            else:
+
+                motivatie_tekst = ""
+
+                for trek in gekozen_trekken:
+                    motivatie_tekst += f"""
 {trek}
 Score: {scores[trek]}/10
 Motivatie van de leerlingen:
@@ -308,7 +317,7 @@ Motivatie van de leerlingen:
 
 """
 
-            prompt = f"""
+                prompt = f"""
 Je bent docent gedragswetenschappen voor leerlingen van ongeveer 17 jaar.
 
 De leerlingen leren deze vijf persoonlijkheidsdimensies:
@@ -340,7 +349,6 @@ Openheid voor ervaringen: {scores["Openheid voor ervaringen"]}/10
 Voor twee eigenschappen hebben de leerlingen hun keuze verantwoord:
 
 {motivatie_tekst}
-
 
 Geef korte, didactische feedback.
 
@@ -375,56 +383,38 @@ Geef specifiek feedback op de twee geschreven motivaties.
 Geef maximaal twee concrete veranderingen die de leerlingen eventueel kunnen maken.
 """
 
-            with st.spinner("Jullie analyse wordt nagekeken..."):
+                with st.spinner("Jullie analyse wordt nagekeken..."):
 
-                try:
+                    try:
+                        response = client.models.generate_content(
+                            model="gemini-3.5-flash-lite",
+                            contents=prompt
+                        )
 
-                    response = client.models.generate_content(
-                        model="gemini-3.5-flash-lite",
-                        contents=prompt
-                    )
+                        st.session_state.feedback[naam] = response.text
 
-                    st.session_state.feedback[naam] = response.text
+                    except Exception as e:
+                        st.error("Er ging iets mis bij het genereren van de feedback.")
+                        st.code(str(e))
 
-                except Exception as e:
+        if naam in st.session_state.feedback:
 
-                    st.error(
-                        "Er ging iets mis bij het genereren van de feedback."
-                    )
+            st.success("Feedback klaar!")
+            st.markdown(st.session_state.feedback[naam])
 
-                    st.code(str(e))
+            st.info(
+                "Bekijk jullie scores opnieuw. "
+                "Jullie mogen ze aanpassen als de feedback jullie overtuigt."
+            )
 
+            st.markdown("### 4. Klaar? Ga verder")
 
-    # --------------------------------------------------
-    # FEEDBACK TONEN
-    # --------------------------------------------------
+            if st.button(f"➡️ Ga verder naar het volgende personage", key=f"volgende_{naam}"):
 
-    if naam in st.session_state.feedback:
+                st.session_state.resultaten[naam] = {
+                    trek: st.session_state[f"{naam}_{trek}"]
+                    for trek in TREKKEN
+                }
 
-        st.success("Feedback klaar!")
-
-        st.markdown(
-            st.session_state.feedback[naam]
-        )
-
-        st.info(
-            "Bekijk jullie scores opnieuw. "
-            "Jullie mogen ze aanpassen als de feedback jullie overtuigt."
-        )
-
-        st.markdown("### 4. Klaar? Ga verder")
-
-        if st.button(
-            f"➡️ Ga verder naar het volgende personage",
-            key=f"volgende_{naam}"
-        ):
-
-            # actuele scores bewaren
-            st.session_state.resultaten[naam] = {
-                trek: st.session_state[f"{naam}_{trek}"]
-                for trek in TREKKEN
-            }
-
-            st.session_state.personage_index += 1
-
-            st.rerun()
+                st.session_state.personage_index += 1
+                st.rerun()

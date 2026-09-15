@@ -1,15 +1,26 @@
 import streamlit as st
-
 from google import genai
 
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+
+# --------------------------------------------------
+# INSTELLINGEN
+# --------------------------------------------------
+
 st.set_page_config(
     page_title="Expeditie Eiland",
     page_icon="🏝️",
     layout="centered"
 )
 
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+
+
+# --------------------------------------------------
+# TITEL EN INTRODUCTIE
+# --------------------------------------------------
+
 st.title("🏝️ Expeditie Eiland")
+
 st.write(
     "Vijf jongeren vertrekken samen op expeditie. "
     "Voor je ontdekt hoe het hen vergaat, moet je eerst hun persoonlijkheid analyseren."
@@ -17,47 +28,65 @@ st.write(
 
 st.info(
     "Lees de beschrijving van elk personage aandachtig. "
-    "Geef daarna voor elke Big Five-eigenschap een score van 1 tot 10. "
-    "Er is niet altijd één exact juist antwoord: zorg vooral dat je je keuze kunt uitleggen."
+    "Geef daarna voor elke persoonlijkheidsdimensie een score van 1 tot 10. "
+    "Er is niet altijd één exact juist antwoord. "
+    "Het belangrijkste is dat je je keuzes kunt verantwoorden."
 )
+
 
 # --------------------------------------------------
 # UITLEG BIG FIVE
 # --------------------------------------------------
 
-with st.expander("🧠 Wat betekenen de Big Five?"):
+with st.expander("🧠 Wat betekenen de vijf persoonlijkheidsdimensies?"):
+
     st.markdown("""
-**Extraversie (tegenover introversie)**  
-De mate waarin iemand nieuwe sociale contacten legt.  
-**1 =** eerder introvert en minder behoefte aan sociale contacten  
+### Extraversie — tegenover introversie
+De mate waarin iemand nieuwe sociale contacten legt.
+
+**1 =** eerder introvert en weinig behoefte aan sociale contacten  
 **10 =** sterk extravert en legt gemakkelijk nieuwe sociale contacten
 
-**Vriendelijkheid (tegenover afstandelijkheid)**  
-De mate waarin iemand bereid is anderen te helpen en te vertrouwen.  
+---
+
+### Vriendelijkheid — tegenover afstandelijkheid
+De mate waarin iemand bereid is anderen te helpen en te vertrouwen.
+
 **1 =** eerder afstandelijk  
 **10 =** sterk vriendelijk, behulpzaam en vertrouwend
 
-**Emotionele stabiliteit (tegenover neuroticisme)**  
-De mate waarin iemand goed omgaat met emotionele zaken zoals stress en problemen.  
+---
+
+### Emotionele stabiliteit — tegenover neuroticisme
+De mate waarin iemand goed omgaat met emotionele zaken zoals stress en problemen.
+
 **1 =** eerder neurotisch en gevoelig voor stress  
 **10 =** emotioneel zeer stabiel
 
-**Zorgvuldigheid (tegenover onzorgvuldigheid)**  
-De mate waarin iemand georganiseerd en ordelijk is.  
+---
+
+### Zorgvuldigheid — tegenover onzorgvuldigheid
+De mate waarin iemand georganiseerd en ordelijk is.
+
 **1 =** eerder chaotisch of onzorgvuldig  
 **10 =** sterk georganiseerd, ordelijk en zorgvuldig
 
-**Openheid voor ervaringen (tegenover geslotenheid voor ervaringen)**  
-De mate waarin iemand openstaat voor nieuwe ervaringen.  
+---
+
+### Openheid voor ervaringen — tegenover geslotenheid voor ervaringen
+De mate waarin iemand openstaat voor nieuwe ervaringen.
+
 **1 =** eerder gesloten voor nieuwe ervaringen  
 **10 =** sterk open voor nieuwe ervaringen
 """)
+
 
 # --------------------------------------------------
 # PERSONAGES
 # --------------------------------------------------
 
 personages = {
+
     "Noor": """
 Noor probeert graag onbekende dingen uit en bedenkt vaak originele oplossingen.
 In een groep neemt ze gemakkelijk het woord en krijgt ze anderen enthousiast.
@@ -96,16 +125,22 @@ Wanneer iets belangrijk is, kan ze zich er wel behoorlijk zorgen over maken.
 """
 }
 
-# Hier bewaren we de scores
-scores = {}
 
 # --------------------------------------------------
-# SCORES LATEN INVULLEN
+# SCORES BEWAREN
+# --------------------------------------------------
+
+scores = {}
+
+
+# --------------------------------------------------
+# LEERLINGEN LATEN ANALYSEREN
 # --------------------------------------------------
 
 for naam, beschrijving in personages.items():
 
     st.divider()
+
     st.header(naam)
 
     st.write(beschrijving)
@@ -113,79 +148,98 @@ for naam, beschrijving in personages.items():
     st.markdown("#### Jullie inschatting")
 
     extraversie = st.slider(
-    f"Extraversie — {naam}",
-    1, 10, 5,
-    key=f"{naam}_extraversie",
-    help="1 = eerder introvert | 10 = sterk extravert"
-)
+        f"Extraversie — {naam}",
+        1,
+        10,
+        5,
+        key=f"{naam}_extraversie",
+        help="1 = eerder introvert | 10 = sterk extravert"
+    )
 
-vriendelijkheid = st.slider(
-    f"Vriendelijkheid — {naam}",
-    1, 10, 5,
-    key=f"{naam}_vriendelijkheid",
-    help="1 = eerder afstandelijk | 10 = sterk vriendelijk, behulpzaam en vertrouwend"
-)
+    vriendelijkheid = st.slider(
+        f"Vriendelijkheid — {naam}",
+        1,
+        10,
+        5,
+        key=f"{naam}_vriendelijkheid",
+        help="1 = eerder afstandelijk | 10 = sterk vriendelijk, behulpzaam en vertrouwend"
+    )
 
-emotionele_stabiliteit = st.slider(
-    f"Emotionele stabiliteit — {naam}",
-    1, 10, 5,
-    key=f"{naam}_emotionele_stabiliteit",
-    help="1 = eerder neurotisch/stressgevoelig | 10 = emotioneel zeer stabiel"
-)
+    emotionele_stabiliteit = st.slider(
+        f"Emotionele stabiliteit — {naam}",
+        1,
+        10,
+        5,
+        key=f"{naam}_emotionele_stabiliteit",
+        help="1 = eerder neurotisch en stressgevoelig | 10 = emotioneel zeer stabiel"
+    )
 
-zorgvuldigheid = st.slider(
-    f"Zorgvuldigheid — {naam}",
-    1, 10, 5,
-    key=f"{naam}_zorgvuldigheid",
-    help="1 = eerder chaotisch of onzorgvuldig | 10 = sterk georganiseerd en ordelijk"
-)
+    zorgvuldigheid = st.slider(
+        f"Zorgvuldigheid — {naam}",
+        1,
+        10,
+        5,
+        key=f"{naam}_zorgvuldigheid",
+        help="1 = eerder chaotisch of onzorgvuldig | 10 = sterk georganiseerd en zorgvuldig"
+    )
 
-openheid = st.slider(
-    f"Openheid voor ervaringen — {naam}",
-    1, 10, 5,
-    key=f"{naam}_openheid",
-    help="1 = eerder gesloten voor nieuwe ervaringen | 10 = sterk open voor nieuwe ervaringen"
-)
+    openheid = st.slider(
+        f"Openheid voor ervaringen — {naam}",
+        1,
+        10,
+        5,
+        key=f"{naam}_openheid",
+        help="1 = eerder gesloten voor nieuwe ervaringen | 10 = sterk open voor nieuwe ervaringen"
+    )
 
     motivatie = st.text_area(
-        f"Waarom kozen jullie deze scores voor {naam}?",
-        placeholder="Verwijs naar informatie uit de beschrijving...",
+        f"Leg kort uit waarom jullie deze scores kozen voor {naam}.",
+        placeholder=(
+            "Verwijs naar concrete informatie uit de beschrijving. "
+            "Bijvoorbeeld: 'We geven Elias een hoge score voor zorgvuldigheid "
+            "omdat hij vooraf plant en taken nauwkeurig uitvoert.'"
+        ),
         key=f"{naam}_motivatie"
     )
 
     scores[naam] = {
-    "Extraversie": extraversie,
-    "Vriendelijkheid": vriendelijkheid,
-    "Emotionele stabiliteit": emotionele_stabiliteit,
-    "Zorgvuldigheid": zorgvuldigheid,
-    "Openheid voor ervaringen": openheid,
-    "Motivatie": motivatie
-}
+        "Extraversie": extraversie,
+        "Vriendelijkheid": vriendelijkheid,
+        "Emotionele stabiliteit": emotionele_stabiliteit,
+        "Zorgvuldigheid": zorgvuldigheid,
+        "Openheid voor ervaringen": openheid,
+        "Motivatie": motivatie
     }
+
+
 # --------------------------------------------------
-# FEEDBACK OP DE ANALYSE
+# FEEDBACK
 # --------------------------------------------------
 
 st.divider()
-st.header("🧠 Controleer jullie persoonlijkheidsanalyse")
+
+st.header("🔎 Controleer jullie analyse")
 
 st.write(
-    "Laat jullie inschattingen controleren. "
-    "Je krijgt geen exact 'juist antwoord', maar feedback over de vraag "
-    "of jullie scores en argumenten goed passen bij de beschrijvingen."
+    "Als iedereen is geanalyseerd, kunnen jullie feedback vragen. "
+    "De feedback kijkt niet naar één exact juist cijfer, maar naar de vraag "
+    "of jullie inschatting goed past bij de beschrijving."
 )
 
-if st.button("🔎 Controleer onze analyse"):
+if st.button("🧠 Controleer onze persoonlijkheidsanalyse"):
 
     ontbrekende_motivaties = [
-        naam for naam, profiel in scores.items()
+        naam
+        for naam, profiel in scores.items()
         if not profiel["Motivatie"].strip()
     ]
 
     if ontbrekende_motivaties:
+
         st.warning(
             "Geef eerst bij elk personage een korte motivatie. "
-            "Nog niet ingevuld: " + ", ".join(ontbrekende_motivaties)
+            "Nog niet ingevuld: "
+            + ", ".join(ontbrekende_motivaties)
         )
 
     else:
@@ -193,86 +247,100 @@ if st.button("🔎 Controleer onze analyse"):
         analyses = ""
 
         for naam, profiel in scores.items():
+
             analyses += f"""
+
 PERSONAGE: {naam}
 
 Beschrijving:
 {personages[naam]}
 
 Scores van de leerlingen:
-- Openheid: {profiel['Openheid']}/10
-- Consciëntieusheid: {profiel['Consciëntieusheid']}/10
 - Extraversie: {profiel['Extraversie']}/10
-- Altruïsme: {profiel['Altruïsme']}/10
-- Neuroticisme: {profiel['Neuroticisme']}/10
+- Vriendelijkheid: {profiel['Vriendelijkheid']}/10
+- Emotionele stabiliteit: {profiel['Emotionele stabiliteit']}/10
+- Zorgvuldigheid: {profiel['Zorgvuldigheid']}/10
+- Openheid voor ervaringen: {profiel['Openheid voor ervaringen']}/10
 
 Motivatie van de leerlingen:
 {profiel['Motivatie']}
 
-----------------------------
+----------------------------------------
+
 """
 
         prompt = f"""
-Je bent een docent gedragswetenschappen voor leerlingen van ongeveer 17 jaar.
+Je bent docent gedragswetenschappen voor leerlingen van ongeveer 17 jaar.
 
-De leerlingen leren de Big Five kennen. Ze hebben vijf fictieve personages
-geanalyseerd en aan iedere Big Five-eigenschap een score van 1 tot 10 gegeven.
+De leerlingen leren vijf persoonlijkheidsdimensies kennen en hebben vijf
+fictieve personages geanalyseerd.
 
-Geef didactische feedback op hun analyse.
+Gebruik UITSLUITEND deze terminologie:
 
-BELANGRIJKE REGELS:
-
-- Doe NIET alsof er voor een persoonlijkheidstrek één exact juist getal bestaat.
-- Beoordeel vooral of de leerling de trek terecht als laag, gemiddeld of hoog inschat.
-- Baseer je uitsluitend op de informatie in de karakterbeschrijving.
-- Een eigenschap waarover de tekst weinig informatie geeft, moet je ook als onzeker benoemen.
-- Leg steeds kort uit WELKE informatie uit de beschrijving relevant is.
-- Geef ook feedback op de motivatie die de leerlingen zelf schreven.
-- Als een score duidelijk moeilijk te verdedigen is, zeg welke richting
-  waarschijnlijk beter past: lager, gemiddeld of hoger.
-- Geef geen lange algemene uitleg over de Big Five.
-- Schrijf helder en beknopt voor 17-jarige leerlingen.
-- Wees kritisch: zeg niet automatisch dat elke keuze goed is.
-- Gebruik uitsluitend de terminologie uit het handboek:
-
-- extraversie tegenover introversie
-- vriendelijkheid tegenover afstandelijkheid
-- emotionele stabiliteit tegenover neuroticisme
-- zorgvuldigheid tegenover onzorgvuldigheid
-- openheid voor ervaringen tegenover geslotenheid voor ervaringen
+1. extraversie tegenover introversie
+2. vriendelijkheid tegenover afstandelijkheid
+3. emotionele stabiliteit tegenover neuroticisme
+4. zorgvuldigheid tegenover onzorgvuldigheid
+5. openheid voor ervaringen tegenover geslotenheid voor ervaringen
 
 Een hoge score betekent telkens een hoge score op de eerstgenoemde eigenschap.
-Dus:
+
+Dus bijvoorbeeld:
+
+- 10 op extraversie = sterk extravert
+- 1 op extraversie = sterk introvert
+
 - 10 op emotionele stabiliteit = zeer emotioneel stabiel
-- 1 op emotionele stabiliteit = eerder neurotisch/stressgevoelig
+- 1 op emotionele stabiliteit = eerder neurotisch en stressgevoelig
 
-Gebruik termen als 'consciëntieusheid' en 'altruïsme' niet in je feedback.Gebruik uitsluitend de terminologie uit het handboek:
+- 10 op openheid voor ervaringen = zeer open voor nieuwe ervaringen
+- 1 op openheid voor ervaringen = eerder gesloten voor nieuwe ervaringen
 
-- extraversie tegenover introversie
-- vriendelijkheid tegenover afstandelijkheid
-- emotionele stabiliteit tegenover neuroticisme
-- zorgvuldigheid tegenover onzorgvuldigheid
-- openheid voor ervaringen tegenover geslotenheid voor ervaringen
 
-Een hoge score betekent telkens een hoge score op de eerstgenoemde eigenschap.
-Dus:
-- 10 op emotionele stabiliteit = zeer emotioneel stabiel
-- 1 op emotionele stabiliteit = eerder neurotisch/stressgevoelig
+DOEL VAN DE FEEDBACK
 
-Gebruik termen als 'consciëntieusheid' en 'altruïsme' niet in je feedback.
+De leerlingen moeten vooral leren begrijpen wat de vijf dimensies betekenen.
 
-Gebruik voor ELK personage deze structuur:
+Geef daarom didactische feedback op zowel:
+- hun gekozen scores;
+- hun geschreven motivatie.
 
-### Naam
 
-**Wat jullie goed interpreteren**
-[Korte feedback]
+BELANGRIJKE REGELS
 
-**Wat ik zou herbekijken**
-[Korte feedback. Als er niets problematisch is, zeg dat.]
+- Doe NIET alsof voor iedere eigenschap één exact juist cijfer bestaat.
+- Beoordeel vooral of laag, gemiddeld of hoog goed is ingeschat.
+- Een verschil tussen bijvoorbeeld 7 en 8 is niet belangrijk.
+- Baseer je uitsluitend op informatie uit de beschrijving.
+- Bedenk geen eigenschappen die niet in de beschrijving staan.
+- Als er te weinig informatie is om een eigenschap goed te beoordelen,
+  zeg dan expliciet dat de score onzeker is.
+- Leg steeds uit welke concrete informatie uit de beschrijving relevant is.
+- Als de motivatie van de leerlingen goed is, zeg waarom.
+- Als hun redenering niet klopt, leg kort uit waar de fout zit.
+- Als een score moeilijk te verdedigen is, zeg dan of een lagere,
+  gemiddelde of hogere score waarschijnlijk beter past.
+- Gebruik GEEN termen zoals consciëntieusheid, altruïsme of agreeableness.
+  Gebruik alleen de Nederlandstalige termen hierboven.
+- Wees kritisch. Bevestig niet automatisch elke keuze.
+- Houd de feedback overzichtelijk en beknopt.
+- Schrijf begrijpelijk voor leerlingen van ongeveer 17 jaar.
+
+
+GEEF VOOR ELK PERSONAGE DEZE STRUCTUUR:
+
+### Naam van het personage
+
+**Goed gezien**
+Noem één of twee zaken die de leerlingen goed hebben geïnterpreteerd.
+
+**Dit zouden we herbekijken**
+Bespreek scores of redeneringen die minder goed bij de beschrijving passen.
+Als alles redelijk verdedigbaar is, zeg dat.
 
 **Tip**
-[Maximaal één concrete tip om de analyse te verbeteren.]
+Geef één concrete tip waarmee ze hun analyse kunnen verbeteren.
+
 
 Hier zijn de analyses van de leerlingen:
 
@@ -287,23 +355,28 @@ Hier zijn de analyses van de leerlingen:
             )
 
         st.success("Feedback klaar!")
+
         st.markdown(response.text)
+
+
 # --------------------------------------------------
-# OVERZICHT
+# OVERZICHT VAN DE GEKOZEN PROFIELEN
 # --------------------------------------------------
 
 st.divider()
 
 if st.button("📋 Toon onze vijf persoonlijkheidsprofielen"):
 
-    st.subheader("Jullie inschattingen")
+    st.subheader("Jullie huidige inschattingen")
 
     for naam, profiel in scores.items():
+
         st.markdown(f"### {naam}")
+
         st.write(
-            f"Openheid: **{profiel['Openheid']}/10**  |  "
-            f"Consciëntieusheid: **{profiel['Consciëntieusheid']}/10**  |  "
             f"Extraversie: **{profiel['Extraversie']}/10**  |  "
-            f"Altruïsme: **{profiel['Altruïsme']}/10**  |  "
-            f"Neuroticisme: **{profiel['Neuroticisme']}/10**"
+            f"Vriendelijkheid: **{profiel['Vriendelijkheid']}/10**  |  "
+            f"Emotionele stabiliteit: **{profiel['Emotionele stabiliteit']}/10**  |  "
+            f"Zorgvuldigheid: **{profiel['Zorgvuldigheid']}/10**  |  "
+            f"Openheid: **{profiel['Openheid voor ervaringen']}/10**"
         )

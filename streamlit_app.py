@@ -112,40 +112,40 @@ for naam, beschrijving in personages.items():
 
     st.markdown("#### Jullie inschatting")
 
-    openheid = st.slider(
-        f"Openheid — {naam}",
-        1, 10, 5,
-        key=f"{naam}_openheid",
-        help="1 = sterk gericht op het vertrouwde | 10 = zeer nieuwsgierig en open voor nieuwe ervaringen"
-    )
+    extraversie = st.slider(
+    f"Extraversie — {naam}",
+    1, 10, 5,
+    key=f"{naam}_extraversie",
+    help="1 = eerder introvert | 10 = sterk extravert"
+)
 
-    consci = st.slider(
-        f"Consciëntieusheid — {naam}",
-        1, 10, 5,
-        key=f"{naam}_consci",
-        help="1 = weinig georganiseerd | 10 = zeer georganiseerd, gedisciplineerd en plichtsbewust"
-    )
+vriendelijkheid = st.slider(
+    f"Vriendelijkheid — {naam}",
+    1, 10, 5,
+    key=f"{naam}_vriendelijkheid",
+    help="1 = eerder afstandelijk | 10 = sterk vriendelijk, behulpzaam en vertrouwend"
+)
 
-    extra = st.slider(
-        f"Extraversie — {naam}",
-        1, 10, 5,
-        key=f"{naam}_extra",
-        help="1 = sterk introvert/teruggetrokken | 10 = zeer sociaal, actief en assertief"
-    )
+emotionele_stabiliteit = st.slider(
+    f"Emotionele stabiliteit — {naam}",
+    1, 10, 5,
+    key=f"{naam}_emotionele_stabiliteit",
+    help="1 = eerder neurotisch/stressgevoelig | 10 = emotioneel zeer stabiel"
+)
 
-    altru = st.slider(
-        f"Altruïsme — {naam}",
-        1, 10, 5,
-        key=f"{naam}_altru",
-        help="1 = competitief/kritisch | 10 = zeer vriendelijk en coöperatief"
-    )
+zorgvuldigheid = st.slider(
+    f"Zorgvuldigheid — {naam}",
+    1, 10, 5,
+    key=f"{naam}_zorgvuldigheid",
+    help="1 = eerder chaotisch of onzorgvuldig | 10 = sterk georganiseerd en ordelijk"
+)
 
-    neuro = st.slider(
-        f"Neuroticisme — {naam}",
-        1, 10, 5,
-        key=f"{naam}_neuro",
-        help="1 = emotioneel zeer stabiel | 10 = zeer gevoelig voor stress en zorgen"
-    )
+openheid = st.slider(
+    f"Openheid voor ervaringen — {naam}",
+    1, 10, 5,
+    key=f"{naam}_openheid",
+    help="1 = eerder gesloten voor nieuwe ervaringen | 10 = sterk open voor nieuwe ervaringen"
+)
 
     motivatie = st.text_area(
         f"Waarom kozen jullie deze scores voor {naam}?",

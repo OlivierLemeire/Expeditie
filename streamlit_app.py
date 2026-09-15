@@ -347,16 +347,16 @@ Hier zijn de analyses van de leerlingen:
 {analyses}
 """
 
-        with st.spinner("Jullie analyse wordt nagekeken..."):
+       with st.spinner("Jullie analyse wordt nagekeken..."):
 
-            response = client.models.generate_content(
-                model="gemini-3.8-flash",
-                contents=prompt
-            )
+    response = client.interactions.create(
+        model="gemini-3.8-flash",
+        input=prompt
+    )
 
-        st.success("Feedback klaar!")
+st.success("Feedback klaar!")
 
-        st.markdown(response.text)
+st.markdown(response.output_text)
 
 
 # --------------------------------------------------

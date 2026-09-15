@@ -1,5 +1,8 @@
 import streamlit as st
 
+from google import genai
+
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 st.set_page_config(
     page_title="Expeditie Eiland",
     page_icon="🏝️",
@@ -158,7 +161,105 @@ for naam, beschrijving in personages.items():
         "Neuroticisme": neuro,
         "Motivatie": motivatie
     }
+# --------------------------------------------------
+# FEEDBACK OP DE ANALYSE
+# --------------------------------------------------
 
+st.divider()
+st.header("🧠 Controleer jullie persoonlijkheidsanalyse")
+
+st.write(
+    "Laat jullie inschattingen controleren. "
+    "Je krijgt geen exact 'juist antwoord', maar feedback over de vraag "
+    "of jullie scores en argumenten goed passen bij de beschrijvingen."
+)
+
+if st.button("🔎 Controleer onze analyse"):
+
+    ontbrekende_motivaties = [
+        naam for naam, profiel in scores.items()
+        if not profiel["Motivatie"].strip()
+    ]
+
+    if ontbrekende_motivaties:
+        st.warning(
+            "Geef eerst bij elk personage een korte motivatie. "
+            "Nog niet ingevuld: " + ", ".join(ontbrekende_motivaties)
+        )
+
+    else:
+
+        analyses = ""
+
+        for naam, profiel in scores.items():
+            analyses += f"""
+PERSONAGE: {naam}
+
+Beschrijving:
+{personages[naam]}
+
+Scores van de leerlingen:
+- Openheid: {profiel['Openheid']}/10
+- Consciëntieusheid: {profiel['Consciëntieusheid']}/10
+- Extraversie: {profiel['Extraversie']}/10
+- Altruïsme: {profiel['Altruïsme']}/10
+- Neuroticisme: {profiel['Neuroticisme']}/10
+
+Motivatie van de leerlingen:
+{profiel['Motivatie']}
+
+----------------------------
+"""
+
+        prompt = f"""
+Je bent een docent gedragswetenschappen voor leerlingen van ongeveer 17 jaar.
+
+De leerlingen leren de Big Five kennen. Ze hebben vijf fictieve personages
+geanalyseerd en aan iedere Big Five-eigenschap een score van 1 tot 10 gegeven.
+
+Geef didactische feedback op hun analyse.
+
+BELANGRIJKE REGELS:
+
+- Doe NIET alsof er voor een persoonlijkheidstrek één exact juist getal bestaat.
+- Beoordeel vooral of de leerling de trek terecht als laag, gemiddeld of hoog inschat.
+- Baseer je uitsluitend op de informatie in de karakterbeschrijving.
+- Een eigenschap waarover de tekst weinig informatie geeft, moet je ook als onzeker benoemen.
+- Leg steeds kort uit WELKE informatie uit de beschrijving relevant is.
+- Geef ook feedback op de motivatie die de leerlingen zelf schreven.
+- Als een score duidelijk moeilijk te verdedigen is, zeg welke richting
+  waarschijnlijk beter past: lager, gemiddeld of hoger.
+- Geef geen lange algemene uitleg over de Big Five.
+- Schrijf helder en beknopt voor 17-jarige leerlingen.
+- Wees kritisch: zeg niet automatisch dat elke keuze goed is.
+
+Gebruik voor ELK personage deze structuur:
+
+### Naam
+
+**Wat jullie goed interpreteren**
+[Korte feedback]
+
+**Wat ik zou herbekijken**
+[Korte feedback. Als er niets problematisch is, zeg dat.]
+
+**Tip**
+[Maximaal één concrete tip om de analyse te verbeteren.]
+
+Hier zijn de analyses van de leerlingen:
+
+{analyses}
+"""
+
+        with st.spinner("Jullie analyse wordt nagekeken..."):
+
+            response = client.models.generate_content(
+                model="gemini-3.8-flash",
+                contents=prompt
+            )
+
+        st.success("Feedback klaar!")
+        st.markdown(response.text)
 # --------------------------------------------------
 # OVERZICHT
 # --------------------------------------------------

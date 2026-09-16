@@ -14,7 +14,9 @@ st.set_page_config(
     layout="centered"
 )
 
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+client = genai.Client(
+    api_key=st.secrets["GEMINI_API_KEY"]
+)
 
 
 # ==================================================
@@ -78,6 +80,7 @@ Ze begint echter regelmatig aan iets nieuws voordat het vorige af is.
 Als iets mislukt, maakt ze zich daar meestal niet lang druk over.
 """
     },
+
     {
         "naam": "Elias",
         "afbeelding": "images/elias.png",
@@ -88,6 +91,7 @@ Hij praat niet veel in grote groepen en kiest liever voor een aanpak waarvan bew
 dat die werkt. Als anderen slordig werken, kan hij nogal kritisch reageren.
 """
     },
+
     {
         "naam": "Aya",
         "afbeelding": "images/aya.png",
@@ -98,6 +102,7 @@ Zelf neemt ze niet snel de leiding en vindt ze het lastig om iemand tegen te spr
 In nieuwe situaties is ze aanvankelijk onzeker en piekert ze gemakkelijk over wat er mis kan gaan.
 """
     },
+
     {
         "naam": "Mats",
         "afbeelding": "images/mats.png",
@@ -109,6 +114,7 @@ ook wanneer anderen dat onaangenaam vinden.
 Hij heeft weinig geduld voor lange vergaderingen of uitgebreide plannen.
 """
     },
+
     {
         "naam": "Lina",
         "afbeelding": "images/lina.png",
@@ -128,6 +134,7 @@ Wanneer iets belangrijk is, kan ze zich er wel behoorlijk zorgen over maken.
 # ==================================================
 
 VERWACHT = {
+
     "Noor": {
         "Extraversie": {
             "min": 7, "max": 10,
@@ -135,7 +142,7 @@ VERWACHT = {
         },
         "Vriendelijkheid": {
             "min": 5, "max": 8,
-            "uitleg": "de tekst geeft hierover minder duidelijke informatie"
+            "uitleg": "de tekst hierover geen heel sterke aanwijzingen geeft"
         },
         "Emotionele stabiliteit": {
             "min": 7, "max": 10,
@@ -272,6 +279,8 @@ ROLLEN = {
 # ==================================================
 
 standaard_state = {
+
+    # Echte leerlinggegevens
     "fase": "intro",
     "groepsleden": "",
     "analyse_intro_getoond": False,
@@ -287,16 +296,177 @@ standaard_state = {
     "aanpassingsgeschiedenis": [],
     "redding_onthuld": False,
     "stappenstatus": {},
-    "demo_stap": 0
+
+    # Alleen voor verborgen presentatieknoppen
+    "demo_stap": 0,
+    "demo_navigatie_actief": False,
+    "demo_profielen": {},
+    "demo_rollen": {},
+    "demo_rolredenen": {},
+    "demo_simulatieverhalen": {}
 }
 
+
 for sleutel, waarde in standaard_state.items():
+
     if sleutel not in st.session_state:
-        st.session_state[sleutel] = copy.deepcopy(waarde)
+
+        st.session_state[sleutel] = copy.deepcopy(
+            waarde
+        )
 
 
 # ==================================================
-# HULPFUNCTIES
+# HULPFUNCTIES — PROFIELEN
+# ==================================================
+
+def standaard_profiel(naam):
+
+    profiel = {}
+
+    for trek, waarden in VERWACHT[naam].items():
+
+        profiel[trek] = round(
+            (
+                waarden["min"]
+                + waarden["max"]
+            ) / 2
+        )
+
+    return profiel
+
+
+def maak_demo_profielen():
+
+    profielen = {}
+
+    for persoon in personages:
+
+        naam = persoon["naam"]
+
+        profielen[naam] = standaard_profiel(
+            naam
+        )
+
+    return profielen
+
+
+if not st.session_state.demo_profielen:
+
+    st.session_state.demo_profielen = (
+        maak_demo_profielen()
+    )
+
+
+if not st.session_state.demo_rollen:
+
+    st.session_state.demo_rollen = {
+        "Verkenner": "Noor",
+        "Planner / voorraadbeheerder": "Elias",
+        "Kampbouwer": "Mats",
+        "Onderzoeker": "Lina",
+        "Groepscoördinator": "Aya"
+    }
+
+
+if not st.session_state.demo_rolredenen:
+
+    st.session_state.demo_rolredenen = {
+        "Verkenner":
+            "Noor staat sterk open voor nieuwe ervaringen.",
+
+        "Planner / voorraadbeheerder":
+            "Elias werkt zeer zorgvuldig en planmatig.",
+
+        "Kampbouwer":
+            "Mats neemt snel beslissingen en blijft rustig onder druk.",
+
+        "Onderzoeker":
+            "Lina is nieuwsgierig en observeert zorgvuldig.",
+
+        "Groepscoördinator":
+            "Aya is vriendelijk en houdt sterk rekening met anderen."
+    }
+
+
+def profiel_voor_weergave(naam):
+    """
+    Geeft ALTIJD echte leerlinggegevens terug als de leerling
+    deze analyse werkelijk heeft voltooid.
+
+    Alleen bij een overgeslagen stap in de verborgen demo-navigatie
+    wordt een apart demo-profiel gebruikt.
+    """
+
+    status = st.session_state.stappenstatus.get(
+        f"analyse_{naam}"
+    )
+
+    if (
+        status == "voltooid"
+        and naam in st.session_state.resultaten
+    ):
+
+        return copy.deepcopy(
+            st.session_state.resultaten[naam]
+        )
+
+    return copy.deepcopy(
+        st.session_state.demo_profielen[naam]
+    )
+
+
+def profielen_voor_simulatie():
+
+    profielen = {}
+
+    for persoon in personages:
+
+        naam = persoon["naam"]
+
+        profielen[naam] = profiel_voor_weergave(
+            naam
+        )
+
+    return profielen
+
+
+def actieve_rollen():
+
+    if (
+        st.session_state.stappenstatus.get("rollen")
+        == "voltooid"
+        and st.session_state.rollen
+    ):
+
+        return copy.deepcopy(
+            st.session_state.rollen
+        )
+
+    return copy.deepcopy(
+        st.session_state.demo_rollen
+    )
+
+
+def actieve_rolredenen():
+
+    if (
+        st.session_state.stappenstatus.get("rollen")
+        == "voltooid"
+        and st.session_state.rolredenen
+    ):
+
+        return copy.deepcopy(
+            st.session_state.rolredenen
+        )
+
+    return copy.deepcopy(
+        st.session_state.demo_rolredenen
+    )
+
+
+# ==================================================
+# HULPFUNCTIES — TEKST
 # ==================================================
 
 def profiel_regel(profiel):
@@ -308,59 +478,6 @@ def profiel_regel(profiel):
         f"Zorgvuldigheid {profiel['Zorgvuldigheid']}/10 | "
         f"Openheid {profiel['Openheid voor ervaringen']}/10"
     )
-
-
-def standaard_profiel(naam):
-
-    profiel = {}
-
-    for trek, waarden in VERWACHT[naam].items():
-
-        profiel[trek] = round(
-            (waarden["min"] + waarden["max"]) / 2
-        )
-
-    return profiel
-
-
-def zorg_dat_profielen_bestaan():
-
-    for persoon in personages:
-
-        naam = persoon["naam"]
-
-        if naam not in st.session_state.resultaten:
-
-            st.session_state.resultaten[naam] = standaard_profiel(naam)
-
-        if naam not in st.session_state.huidige_profielen:
-
-            st.session_state.huidige_profielen[naam] = copy.deepcopy(
-                st.session_state.resultaten[naam]
-            )
-
-
-def standaard_rollen():
-
-    return {
-        "Verkenner": "Noor",
-        "Planner / voorraadbeheerder": "Elias",
-        "Kampbouwer": "Mats",
-        "Onderzoeker": "Lina",
-        "Groepscoördinator": "Aya"
-    }
-
-
-def zorg_dat_rollen_bestaan():
-
-    if not st.session_state.rollen:
-
-        st.session_state.rollen = standaard_rollen()
-
-        st.session_state.rolredenen = {
-            rol: "Stap overgeslagen via de verborgen navigatie."
-            for rol in ROLLEN
-        }
 
 
 def profielen_naar_tekst(profielen):
@@ -384,21 +501,32 @@ def profielen_naar_tekst(profielen):
 
 def rollen_naar_tekst():
 
+    rollen = actieve_rollen()
+
+    redenen = actieve_rolredenen()
+
     tekst = ""
 
-    for rol, persoon in st.session_state.rollen.items():
-
-        reden = st.session_state.rolredenen.get(rol, "")
+    for rol, persoon in rollen.items():
 
         tekst += (
             f"- {rol}: {persoon}. "
-            f"Reden: {reden}\n"
+            f"Reden: {redenen.get(rol, '')}\n"
         )
 
     return tekst
 
 
-def score_feedback(score, minimum, maximum, uitleg):
+# ==================================================
+# SNELLE FEEDBACK
+# ==================================================
+
+def score_feedback(
+    score,
+    minimum,
+    maximum,
+    uitleg
+):
 
     if minimum <= score <= maximum:
 
@@ -407,11 +535,16 @@ def score_feedback(score, minimum, maximum, uitleg):
             f"Deze score past goed: {uitleg}."
         )
 
-    elif minimum - 1 <= score <= maximum + 1:
+    elif (
+        minimum - 1
+        <= score
+        <= maximum + 1
+    ):
 
         return (
             "twijfel",
-            f"Deze score is nog verdedigbaar. Kijk vooral naar het feit dat {uitleg}."
+            f"Deze score is nog verdedigbaar. "
+            f"Kijk vooral naar het feit dat {uitleg}."
         )
 
     elif score < minimum:
@@ -419,8 +552,8 @@ def score_feedback(score, minimum, maximum, uitleg):
         return (
             "laag",
             f"Deze score lijkt wat laag. "
-            f"Een score rond {minimum}–{maximum}/10 lijkt beter te passen, "
-            f"omdat {uitleg}."
+            f"Een score rond {minimum}–{maximum}/10 "
+            f"lijkt beter te passen, omdat {uitleg}."
         )
 
     else:
@@ -428,12 +561,16 @@ def score_feedback(score, minimum, maximum, uitleg):
         return (
             "hoog",
             f"Deze score lijkt wat hoog. "
-            f"Een score rond {minimum}–{maximum}/10 lijkt beter te passen, "
-            f"omdat {uitleg}."
+            f"Een score rond {minimum}–{maximum}/10 "
+            f"lijkt beter te passen, omdat {uitleg}."
         )
 
 
-def maak_feedback_persoon(naam, scores, gekozen_trekken):
+def maak_feedback_persoon(
+    naam,
+    scores,
+    gekozen_trekken
+):
 
     profiel = VERWACHT[naam]
 
@@ -451,32 +588,57 @@ def maak_feedback_persoon(naam, scores, gekozen_trekken):
             verwacht["uitleg"]
         )
 
-        if status in ["goed", "twijfel"]:
+        if status in [
+            "goed",
+            "twijfel"
+        ]:
+
             goed.append(
                 f"**{trek}:** {tekst}"
             )
+
         else:
+
             herbekijk.append(
                 f"**{trek}:** {tekst}"
             )
 
+
     tekst = "### Goed gezien\n"
 
     if goed:
+
         tekst += "\n".join(
-            [f"- {x}" for x in goed[:3]]
+            [
+                f"- {x}"
+                for x in goed[:3]
+            ]
         )
+
     else:
-        tekst += "- Herbekijk de meeste scores nog eens."
+
+        tekst += (
+            "- Herbekijk de meeste scores nog eens."
+        )
+
 
     tekst += "\n\n### Herbekijk dit\n"
 
     if herbekijk:
+
         tekst += "\n".join(
-            [f"- {x}" for x in herbekijk]
+            [
+                f"- {x}"
+                for x in herbekijk
+            ]
         )
+
     else:
-        tekst += "- De meeste scores zijn goed verdedigbaar."
+
+        tekst += (
+            "- De meeste scores zijn goed verdedigbaar."
+        )
+
 
     tekst += "\n\n### Jullie uitleg\n"
 
@@ -485,18 +647,25 @@ def maak_feedback_persoon(naam, scores, gekozen_trekken):
         verwacht = profiel[trek]
 
         tekst += (
-            f"- **{trek}:** Een goede argumentatie verwijst naar het feit dat "
+            f"- **{trek}:** Een goede argumentatie "
+            f"verwijst naar het feit dat "
             f"{verwacht['uitleg']}.\n"
         )
 
+
     tekst += (
         "\n### Advies\n"
-        "- Kijk vooral naar laag, gemiddeld of hoog; één exact cijfer bestaat niet.\n"
+        "- Kijk vooral naar laag, gemiddeld of hoog; "
+        "één exact cijfer bestaat niet.\n"
         "- Pas jullie scores aan als de feedback jullie overtuigt."
     )
 
     return tekst
 
+
+# ==================================================
+# RESET
+# ==================================================
 
 def reset_spel():
 
@@ -513,12 +682,21 @@ def maak_verslag():
 
     lijnen = []
 
-    lijnen.append("EXPEDITIE EILAND — OVERZICHT")
-    lijnen.append("=" * 45)
-    lijnen.append("")
     lijnen.append(
-        f"Groepsleden: {st.session_state.groepsleden}"
+        "EXPEDITIE EILAND — OVERZICHT"
     )
+
+    lijnen.append(
+        "=" * 45
+    )
+
+    lijnen.append("")
+
+    lijnen.append(
+        f"Groepsleden: "
+        f"{st.session_state.groepsleden}"
+    )
+
     lijnen.append("")
 
 
@@ -526,69 +704,119 @@ def maak_verslag():
     # 1. PERSOONLIJKHEIDSANALYSE
     # --------------------------------------------------
 
-    lijnen.append("1. PERSOONLIJKHEIDSANALYSE")
+    lijnen.append(
+        "1. PERSOONLIJKHEIDSANALYSE"
+    )
+
     lijnen.append("")
+
 
     for persoon in personages:
 
         naam = persoon["naam"]
 
-        lijnen.append(naam.upper())
-
-        status = st.session_state.stappenstatus.get(
-            f"analyse_{naam}",
-            ""
+        lijnen.append(
+            naam.upper()
         )
+
+        status = (
+            st.session_state
+            .stappenstatus
+            .get(
+                f"analyse_{naam}"
+            )
+        )
+
 
         if status == "overgeslagen":
 
-            lijnen.append("STAP OVERGESLAGEN.")
+            lijnen.append(
+                "STAP OVERGESLAGEN."
+            )
+
             lijnen.append("")
-            lijnen.append("-" * 30)
+
+            lijnen.append(
+                "-" * 30
+            )
+
             lijnen.append("")
 
             continue
 
-        log = st.session_state.analyse_log.get(
-            naam,
-            {}
+
+        if status != "voltooid":
+
+            lijnen.append(
+                "Geen volledige analyse geregistreerd."
+            )
+
+            lijnen.append("")
+
+            lijnen.append(
+                "-" * 30
+            )
+
+            lijnen.append("")
+
+            continue
+
+
+        log = (
+            st.session_state
+            .analyse_log
+            .get(
+                naam,
+                {}
+            )
         )
+
 
         eerste = log.get(
             "voor_feedback",
             {}
         )
 
-        definitief = st.session_state.resultaten.get(
-            naam,
-            {}
+
+        definitief = (
+            st.session_state
+            .resultaten
+            .get(
+                naam,
+                {}
+            )
         )
 
-        if not eerste:
 
-            lijnen.append("Geen volledige eerste inschatting geregistreerd.")
+        lijnen.append(
+            "Eerste inschatting:"
+        )
 
-        else:
 
-            lijnen.append("Eerste inschatting:")
+        for trek in TREKKEN:
 
-            for trek in TREKKEN:
+            if trek in eerste:
 
                 lijnen.append(
-                    f"- {trek}: {eerste.get(trek, '—')}/10"
+                    f"- {trek}: "
+                    f"{eerste[trek]}/10"
                 )
 
+
         lijnen.append("")
+
 
         gekozen = log.get(
             "gekozen_trekken",
             []
         )
 
+
         motivaties = log.get(
             "motivaties",
             {}
         )
+
 
         if gekozen:
 
@@ -599,31 +827,38 @@ def maak_verslag():
             for trek in gekozen:
 
                 lijnen.append(
-                    f"- {trek}: {motivaties.get(trek, '')}"
+                    f"- {trek}: "
+                    f"{motivaties.get(trek, '')}"
                 )
 
             lijnen.append("")
 
+
         lijnen.append(
             "Definitieve inschatting na feedback:"
         )
+
 
         for trek in TREKKEN:
 
             if trek in definitief:
 
                 lijnen.append(
-                    f"- {trek}: {definitief[trek]}/10"
+                    f"- {trek}: "
+                    f"{definitief[trek]}/10"
                 )
 
+
         wijzigingen = []
+
 
         for trek in TREKKEN:
 
             if (
                 trek in eerste
                 and trek in definitief
-                and eerste[trek] != definitief[trek]
+                and eerste[trek]
+                != definitief[trek]
             ):
 
                 wijzigingen.append(
@@ -632,7 +867,9 @@ def maak_verslag():
                     f"{definitief[trek]}/10"
                 )
 
+
         lijnen.append("")
+
 
         if wijzigingen:
 
@@ -647,11 +884,17 @@ def maak_verslag():
         else:
 
             lijnen.append(
-                "Na de feedback werden geen scores aangepast."
+                "Na de feedback werden "
+                "geen scores aangepast."
             )
 
+
         lijnen.append("")
-        lijnen.append("-" * 30)
+
+        lijnen.append(
+            "-" * 30
+        )
+
         lijnen.append("")
 
 
@@ -662,10 +905,14 @@ def maak_verslag():
     lijnen.append(
         "2. EXPEDITIEROLLEN"
     )
+
     lijnen.append("")
 
+
     if (
-        st.session_state.stappenstatus.get("rollen")
+        st.session_state
+        .stappenstatus
+        .get("rollen")
         == "overgeslagen"
     ):
 
@@ -673,9 +920,19 @@ def maak_verslag():
             "STAP OVERGESLAGEN."
         )
 
-    else:
 
-        for rol, persoon in st.session_state.rollen.items():
+    elif (
+        st.session_state
+        .stappenstatus
+        .get("rollen")
+        == "voltooid"
+    ):
+
+        for rol, persoon in (
+            st.session_state
+            .rollen
+            .items()
+        ):
 
             lijnen.append(
                 f"{rol}: {persoon}"
@@ -689,47 +946,63 @@ def maak_verslag():
             lijnen.append("")
 
 
+    else:
+
+        lijnen.append(
+            "Geen volledige rolverdeling geregistreerd."
+        )
+
+
     # --------------------------------------------------
     # 3. OVERLEVINGSPROEVEN
     # --------------------------------------------------
 
     lijnen.append("")
+
     lijnen.append(
         "3. OVERLEVINGSPROEVEN"
     )
+
     lijnen.append("")
+
 
     for nummer in range(
         1,
-        st.session_state.simulatieronde + 1
+        5
     ):
 
-        status = st.session_state.stappenstatus.get(
-            f"overlevingsproef_{nummer}",
-            ""
+        status = (
+            st.session_state
+            .stappenstatus
+            .get(
+                f"overlevingsproef_{nummer}"
+            )
         )
+
 
         lijnen.append(
             f"Overlevingsproef {nummer}:"
         )
 
-        if status == "overgeslagen":
 
-            lijnen.append(
-                "STAP OVERGESLAGEN."
-            )
-
-        elif status == "voltooid":
+        if status == "voltooid":
 
             lijnen.append(
                 "Voltooid."
             )
 
+        elif status == "overgeslagen":
+
+            lijnen.append(
+                "STAP OVERGESLAGEN."
+            )
+
         else:
 
             lijnen.append(
-                "Geen volledige registratie."
+                "Niet uitgevoerd."
             )
+
 
         lijnen.append("")
 
@@ -741,7 +1014,9 @@ def maak_verslag():
     lijnen.append(
         "4. PERSOONLIJKHEIDSAANPASSINGEN"
     )
+
     lijnen.append("")
+
 
     if (
         st.session_state
@@ -749,7 +1024,8 @@ def maak_verslag():
     ):
 
         for nummer, ronde_data in enumerate(
-            st.session_state.aanpassingsgeschiedenis,
+            st.session_state
+            .aanpassingsgeschiedenis,
             start=1
         ):
 
@@ -757,7 +1033,10 @@ def maak_verslag():
                 f"Na mislukte expeditie {nummer}:"
             )
 
-            for wijziging in ronde_data["wijzigingen"]:
+
+            for wijziging in (
+                ronde_data["wijzigingen"]
+            ):
 
                 lijnen.append(
                     f"- {wijziging['naam']}: "
@@ -766,56 +1045,129 @@ def maak_verslag():
                     f"{wijziging['nieuw']}/10"
                 )
 
+
             lijnen.append(
-                f"Onze reden: {ronde_data['reden']}"
+                f"Onze reden: "
+                f"{ronde_data['reden']}"
             )
 
             lijnen.append("")
 
+
     else:
 
         lijnen.append(
-            "Geen geregistreerde persoonlijkheidsaanpassingen."
+            "Geen geregistreerde "
+            "persoonlijkheidsaanpassingen."
         )
 
 
     # --------------------------------------------------
-    # 5. EINDPROFIEL
+    # 5. EINDPROFIELEN
     # --------------------------------------------------
 
     lijnen.append("")
+
     lijnen.append(
-        "5. UITEINDELIJKE PERSOONLIJKHEIDSPROFIELEN"
+        "5. UITEINDELIJKE "
+        "PERSOONLIJKHEIDSPROFIELEN"
     )
+
     lijnen.append("")
 
-    for naam, profiel in (
-        st.session_state
-        .huidige_profielen
-        .items()
-    ):
 
-        lijnen.append(
-            f"{naam}: {profiel_regel(profiel)}"
+    for persoon in personages:
+
+        naam = persoon["naam"]
+
+        status = (
+            st.session_state
+            .stappenstatus
+            .get(
+                f"analyse_{naam}"
+            )
         )
 
 
+        if status != "voltooid":
+
+            lijnen.append(
+                f"{naam}: "
+                "basisanalyse overgeslagen "
+                "of niet volledig uitgevoerd."
+            )
+
+            continue
+
+
+        profiel = (
+            st.session_state
+            .huidige_profielen
+            .get(
+                naam
+            )
+        )
+
+
+        if profiel:
+
+            lijnen.append(
+                f"{naam}: "
+                f"{profiel_regel(profiel)}"
+            )
+
+
     # --------------------------------------------------
-    # 6. RESULTAAT
+    # 6. EINDRESULTAAT
     # --------------------------------------------------
 
     lijnen.append("")
+
     lijnen.append(
         "6. EINDRESULTAAT"
     )
+
     lijnen.append("")
 
-    lijnen.append(
-        "De uiteindelijke expeditie overleefde zes maanden "
-        "en werd gered."
-    )
 
-    return "\n".join(lijnen)
+    if (
+        st.session_state
+        .stappenstatus
+        .get("overlevingsproef_4")
+        == "voltooid"
+    ):
+
+        lijnen.append(
+            "De uiteindelijke expeditie "
+            "overleefde zes maanden "
+            "en werd gered."
+        )
+
+
+    elif (
+        st.session_state
+        .stappenstatus
+        .get("overlevingsproef_4")
+        == "overgeslagen"
+    ):
+
+        lijnen.append(
+            "Laatste overlevingsproef: "
+            "STAP OVERGESLAGEN."
+        )
+
+
+    else:
+
+        lijnen.append(
+            "De laatste overlevingsproef "
+            "werd niet volledig uitgevoerd."
+        )
+
+
+    return "\n".join(
+        lijnen
+    )
 
 
 # ==================================================
@@ -824,17 +1176,29 @@ def maak_verslag():
 
 def markeer_huidige_stap_als_overgeslagen():
 
-    stap = st.session_state.demo_stap
+    stap = (
+        st.session_state.demo_stap
+    )
 
-    # Persoonlijkheidsanalyses
+
+    # Noor t/m Lina
     if 2 <= stap <= 6:
 
-        naam = personages[stap - 2]["naam"]
+        naam = (
+            personages[
+                stap - 2
+            ]["naam"]
+        )
 
-        sleutel = f"analyse_{naam}"
+        sleutel = (
+            f"analyse_{naam}"
+        )
+
 
         if (
-            st.session_state.stappenstatus.get(sleutel)
+            st.session_state
+            .stappenstatus
+            .get(sleutel)
             != "voltooid"
         ):
 
@@ -842,11 +1206,14 @@ def markeer_huidige_stap_als_overgeslagen():
                 sleutel
             ] = "overgeslagen"
 
+
     # Rollen
     elif stap == 7:
 
         if (
-            st.session_state.stappenstatus.get("rollen")
+            st.session_state
+            .stappenstatus
+            .get("rollen")
             != "voltooid"
         ):
 
@@ -855,76 +1222,33 @@ def markeer_huidige_stap_als_overgeslagen():
             ] = "overgeslagen"
 
 
-def ga_naar_demo_stap(stap):
+    # Overlevingsproeven
+    elif 8 <= stap <= 11:
 
-    stap = max(
-        0,
-        min(12, stap)
-    )
+        ronde = stap - 7
 
-    st.session_state.demo_stap = stap
-
-    # Voor presentatievelden
-    if not st.session_state.groepsleden:
-
-        st.session_state.groepsleden = (
-            "Demo"
-        )
-
-    zorg_dat_profielen_bestaan()
-
-
-    # 0 — intro
-    if stap == 0:
-
-        st.session_state.fase = "intro"
-
-
-    # 1 — uitleg analyse
-    elif stap == 1:
-
-        st.session_state.fase = "analyse"
-
-        st.session_state.analyse_intro_getoond = False
-
-        st.session_state.personage_index = 0
-
-
-    # 2 t/m 6 — personen
-    elif 2 <= stap <= 6:
-
-        st.session_state.fase = "analyse"
-
-        st.session_state.analyse_intro_getoond = True
-
-        st.session_state.personage_index = (
-            stap - 2
+        sleutel = (
+            f"overlevingsproef_{ronde}"
         )
 
 
-    # 7 — rollen
-    elif stap == 7:
+        if (
+            st.session_state
+            .stappenstatus
+            .get(sleutel)
+            != "voltooid"
+        ):
 
-        st.session_state.fase = "rollen"
+            st.session_state.stappenstatus[
+                sleutel
+            ] = "overgeslagen"
 
-        st.session_state.personage_index = 5
 
+def demo_verhaal(ronde):
 
-    # 8 — eerste mislukking
-    elif stap == 8:
+    verhalen = {
 
-        zorg_dat_rollen_bestaan()
-
-        st.session_state.fase = "simulatie"
-
-        st.session_state.simulatieronde = 1
-
-        st.session_state.stappenstatus[
-            "overlevingsproef_1"
-        ] = "overgeslagen"
-
-        st.session_state.simulatieverhalen = {
-            1: """
+        1: """
 ### De kust
 De groep bouwt een kamp, maar de taakverdeling verloopt chaotisch en de voedselvoorraad wordt slecht bijgehouden.
 
@@ -940,25 +1264,9 @@ De expeditie haalt de zes maanden niet.
 ### Waarom?
 - De planning en taakverdeling waren onvoldoende.
 - Conflicten werden niet goed opgelost.
-"""
-        }
+""",
 
-
-    # 9 — tweede mislukking
-    elif stap == 9:
-
-        zorg_dat_rollen_bestaan()
-
-        st.session_state.fase = "simulatie"
-
-        st.session_state.simulatieronde = 2
-
-        st.session_state.stappenstatus[
-            "overlevingsproef_2"
-        ] = "overgeslagen"
-
-        st.session_state.simulatieverhalen = {
-            2: """
+        2: """
 ### De kust
 De organisatie verloopt beter dan voordien en de voorraden worden zorgvuldiger beheerd.
 
@@ -974,25 +1282,9 @@ Ook deze expeditie haalt de zes maanden niet.
 ### Waarom?
 - De planning is verbeterd.
 - Stress en samenwerking blijven kwetsbaar.
-"""
-        }
+""",
 
-
-    # 10 — derde mislukking
-    elif stap == 10:
-
-        zorg_dat_rollen_bestaan()
-
-        st.session_state.fase = "simulatie"
-
-        st.session_state.simulatieronde = 3
-
-        st.session_state.stappenstatus[
-            "overlevingsproef_3"
-        ] = "overgeslagen"
-
-        st.session_state.simulatieverhalen = {
-            3: """
+        3: """
 ### De kust
 Het kamp functioneert deze keer behoorlijk goed.
 
@@ -1008,27 +1300,9 @@ De groep haalt de redding opnieuw niet.
 ### Waarom?
 - Samenwerking en planning zijn verbeterd.
 - De groep neemt nog te veel onverantwoorde risico's.
-"""
-        }
+""",
 
-
-    # 11 — laatste poging, vóór reveal
-    elif stap == 11:
-
-        zorg_dat_rollen_bestaan()
-
-        st.session_state.fase = "simulatie"
-
-        st.session_state.simulatieronde = 4
-
-        st.session_state.redding_onthuld = False
-
-        st.session_state.stappenstatus[
-            "overlevingsproef_4"
-        ] = "overgeslagen"
-
-        st.session_state.simulatieverhalen = {
-            4: """
+        4: """
 ### De kust
 De groep verdeelt de taken efficiënt en bouwt een stevig kamp.
 
@@ -1045,43 +1319,224 @@ De zes maanden zijn voorbij. De jongeren verzamelen zich op het strand en kijken
 - Planning, samenwerking en aanpassingsvermogen zijn beter in evenwicht.
 - De verschillende persoonlijkheden vullen elkaar aan.
 """
-        }
+    }
+
+    return verhalen[ronde]
 
 
+def ga_naar_demo_stap(stap):
+
+    stap = max(
+        0,
+        min(
+            12,
+            stap
+        )
+    )
+
+    st.session_state.demo_stap = stap
+
+    st.session_state.demo_navigatie_actief = True
+
+
+    if not st.session_state.groepsleden:
+
+        st.session_state.groepsleden = (
+            "Demo"
+        )
+
+
+    # ----------------------------------------------
+    # 0 — openingspagina
+    # ----------------------------------------------
+
+    if stap == 0:
+
+        st.session_state.fase = (
+            "intro"
+        )
+
+
+    # ----------------------------------------------
+    # 1 — uitleg Big Five
+    # ----------------------------------------------
+
+    elif stap == 1:
+
+        st.session_state.fase = (
+            "analyse"
+        )
+
+        st.session_state.analyse_intro_getoond = (
+            False
+        )
+
+        st.session_state.personage_index = (
+            0
+        )
+
+
+    # ----------------------------------------------
+    # 2 t/m 6 — jongeren
+    # ----------------------------------------------
+
+    elif 2 <= stap <= 6:
+
+        st.session_state.fase = (
+            "analyse"
+        )
+
+        st.session_state.analyse_intro_getoond = (
+            True
+        )
+
+        st.session_state.personage_index = (
+            stap - 2
+        )
+
+
+    # ----------------------------------------------
+    # 7 — rollen
+    # ----------------------------------------------
+
+    elif stap == 7:
+
+        st.session_state.fase = (
+            "rollen"
+        )
+
+        st.session_state.personage_index = (
+            5
+        )
+
+
+    # ----------------------------------------------
+    # 8 t/m 11 — overlevingsproeven
+    # ----------------------------------------------
+
+    elif 8 <= stap <= 11:
+
+        ronde = stap - 7
+
+        st.session_state.fase = (
+            "simulatie"
+        )
+
+        st.session_state.simulatieronde = (
+            ronde
+        )
+
+        st.session_state.huidige_profielen = (
+            profielen_voor_simulatie()
+        )
+
+        st.session_state.demo_simulatieverhalen[
+            ronde
+        ] = demo_verhaal(
+            ronde
+        )
+
+
+        sleutel = (
+            f"overlevingsproef_{ronde}"
+        )
+
+
+        if (
+            st.session_state
+            .stappenstatus
+            .get(sleutel)
+            != "voltooid"
+        ):
+
+            st.session_state.stappenstatus[
+                sleutel
+            ] = "overgeslagen"
+
+
+        if ronde == 4:
+
+            st.session_state.redding_onthuld = (
+                False
+            )
+
+
+    # ----------------------------------------------
     # 12 — redding
+    # ----------------------------------------------
+
     elif stap == 12:
 
-        zorg_dat_rollen_bestaan()
+        st.session_state.fase = (
+            "simulatie"
+        )
 
-        st.session_state.fase = "simulatie"
+        st.session_state.simulatieronde = (
+            4
+        )
 
-        st.session_state.simulatieronde = 4
+        st.session_state.huidige_profielen = (
+            profielen_voor_simulatie()
+        )
 
-        st.session_state.redding_onthuld = True
+        st.session_state.demo_simulatieverhalen[
+            4
+        ] = demo_verhaal(
+            4
+        )
 
-        st.session_state.stappenstatus[
-            "overlevingsproef_4"
-        ] = "overgeslagen"
+        st.session_state.redding_onthuld = (
+            True
+        )
 
-        st.session_state.simulatieverhalen = {
-            4: """
-### De kust
-De groep verdeelt de taken efficiënt en bouwt een stevig kamp.
 
-### Het binnenland
-Tijdens de verkenningen vullen de verschillende persoonlijkheden elkaar goed aan.
+        if (
+            st.session_state
+            .stappenstatus
+            .get(
+                "overlevingsproef_4"
+            )
+            != "voltooid"
+        ):
 
-### Het hoogste punt
-Ondanks verschillende tegenslagen blijft de groep samenwerken en bereikt ze het einde van de zesde maand.
+            st.session_state.stappenstatus[
+                "overlevingsproef_4"
+            ] = "overgeslagen"
 
-### Uitkomst
-De zes maanden zijn voorbij. De jongeren verzamelen zich op het strand en kijken naar de horizon.
 
-### Waarom?
-- Planning, samenwerking en aanpassingsvermogen zijn beter in evenwicht.
-- De verschillende persoonlijkheden vullen elkaar aan.
-"""
-        }
+def huidig_verhaal(ronde):
+
+    # Echte simulatie heeft altijd voorrang.
+    if (
+        ronde
+        in st.session_state.simulatieverhalen
+    ):
+
+        return (
+            st.session_state
+            .simulatieverhalen[
+                ronde
+            ]
+        )
+
+
+    # Demo-verhaal alleen als de
+    # verborgen navigatie werd gebruikt.
+    if (
+        st.session_state.demo_navigatie_actief
+        and ronde
+        in st.session_state.demo_simulatieverhalen
+    ):
+
+        return (
+            st.session_state
+            .demo_simulatieverhalen[
+                ronde
+            ]
+        )
+
+
+    return None
 
 
 # ==================================================
@@ -1094,9 +1549,11 @@ if st.session_state.fase == "intro":
         "Expeditie Eiland"
     )
 
+
     eiland_pad = Path(
         "images/eiland.png"
     )
+
 
     if eiland_pad.exists():
 
@@ -1104,6 +1561,7 @@ if st.session_state.fase == "intro":
             str(eiland_pad),
             use_container_width=True
         )
+
 
     st.markdown("""
 Een groep jongeren is neergestort op een onbewoond eiland.
@@ -1119,16 +1577,21 @@ Jullie missie:
 **5.** blijf proberen tot jullie een groep hebben gemaakt die zes maanden kan overleven
 """)
 
+
     st.info(
         "Op het einde maakt de app automatisch een uitgebreid overzicht "
         "van jullie antwoorden, keuzes en aanpassingen. "
         "Dat overzicht moeten jullie indienen."
     )
 
+
     groepsleden = st.text_input(
         "Namen van de groepsleden",
-        placeholder="bv. Nora, Yassine, Marie"
+        placeholder=(
+            "bv. Nora, Yassine, Marie"
+        )
     )
+
 
     if st.button(
         "Start de expeditie"
@@ -1142,11 +1605,21 @@ Jullie missie:
 
         else:
 
-            st.session_state.groepsleden = groepsleden
+            st.session_state.groepsleden = (
+                groepsleden
+            )
 
-            st.session_state.fase = "analyse"
+            st.session_state.fase = (
+                "analyse"
+            )
 
-            st.session_state.demo_stap = 1
+            st.session_state.demo_stap = (
+                1
+            )
+
+            st.session_state.demo_navigatie_actief = (
+                False
+            )
 
             st.rerun()
 
@@ -1162,6 +1635,7 @@ elif st.session_state.fase == "analyse":
         st.title(
             "Fase 1 — Leer de groep kennen"
         )
+
 
         st.markdown("""
 Voor jullie de expeditie kunnen starten,
@@ -1180,13 +1654,22 @@ Bij elke persoon:
 Daarna gebruiken jullie deze profielen om de expeditie samen te stellen.
 """)
 
+
         if st.button(
             "Ga naar persoon 1"
         ):
 
-            st.session_state.analyse_intro_getoond = True
+            st.session_state.analyse_intro_getoond = (
+                True
+            )
 
-            st.session_state.demo_stap = 2
+            st.session_state.demo_stap = (
+                2
+            )
+
+            st.session_state.demo_navigatie_actief = (
+                False
+            )
 
             st.rerun()
 
@@ -1197,9 +1680,11 @@ Daarna gebruiken jullie deze profielen om de expeditie samen te stellen.
             st.session_state.personage_index
         )
 
+
         st.title(
             "Fase 1 — Leer de groep kennen"
         )
+
 
         st.progress(
             index / len(personages)
@@ -1216,6 +1701,7 @@ Daarna gebruiken jullie deze profielen om de expeditie samen te stellen.
                 "De vijf persoonlijkheidsprofielen zijn klaar."
             )
 
+
             st.markdown("""
 Nu kennen jullie de vijf jongeren.
 
@@ -1223,13 +1709,22 @@ De volgende stap is een **expeditieploeg samenstellen**.
 Wie krijgt welke taak?
 """)
 
+
             if st.button(
                 "Stel de expeditie samen"
             ):
 
-                st.session_state.fase = "rollen"
+                st.session_state.fase = (
+                    "rollen"
+                )
 
-                st.session_state.demo_stap = 7
+                st.session_state.demo_stap = (
+                    7
+                )
+
+                st.session_state.demo_navigatie_actief = (
+                    False
+                )
 
                 st.rerun()
 
@@ -1240,21 +1735,30 @@ Wie krijgt welke taak?
 
         else:
 
-            persoon = personages[index]
+            persoon = (
+                personages[index]
+            )
 
-            naam = persoon["naam"]
+            naam = (
+                persoon["naam"]
+            )
+
 
             st.caption(
-                f"Persoon {index + 1} van {len(personages)}"
+                f"Persoon {index + 1} "
+                f"van {len(personages)}"
             )
+
 
             st.header(
                 naam
             )
 
+
             afbeelding = Path(
                 persoon["afbeelding"]
             )
+
 
             if afbeelding.exists():
 
@@ -1263,13 +1767,16 @@ Wie krijgt welke taak?
                     width=340
                 )
 
+
             st.write(
                 persoon["beschrijving"]
             )
 
+
             st.markdown(
                 "### Schat de persoonlijkheid in"
             )
+
 
             st.info(
                 "Zoek concrete aanwijzingen in de beschrijving. "
@@ -1277,7 +1784,9 @@ Wie krijgt welke taak?
                 "om de Big Five-scores in te schatten."
             )
 
+
             scores = {}
+
 
             for trek in TREKKEN:
 
@@ -1290,29 +1799,37 @@ Wie krijgt welke taak?
                     help=UITLEG[trek]
                 )
 
+
             st.markdown(
                 "### Licht 2 keuzes toe"
             )
 
+
             gekozen_trekken = st.multiselect(
-                "Welke 2 eigenschappen willen jullie uitleggen?",
+                "Welke 2 eigenschappen "
+                "willen jullie uitleggen?",
                 TREKKEN,
                 max_selections=2,
                 key=f"{naam}_gekozen_trekken"
             )
 
+
             motivaties = {}
+
 
             for trek in gekozen_trekken:
 
                 motivaties[trek] = st.text_area(
-                    f"Waarom gaven jullie {naam} deze score voor {trek}?",
+                    f"Waarom gaven jullie "
+                    f"{naam} deze score voor "
+                    f"{trek}?",
                     placeholder=(
-                        "Verwijs naar concrete aanwijzingen "
-                        "uit de beschrijving..."
+                        "Verwijs naar concrete "
+                        "aanwijzingen uit de beschrijving..."
                     ),
                     key=f"{naam}_motivatie_{trek}"
                 )
+
 
             if st.button(
                 "Geef feedback",
@@ -1327,14 +1844,17 @@ Wie krijgt welke taak?
                         "Kies precies 2 eigenschappen."
                     )
 
+
                 elif any(
                     not motivaties[trek].strip()
                     for trek in gekozen_trekken
                 ):
 
                     st.warning(
-                        "Schrijf bij beide eigenschappen een korte uitleg."
+                        "Schrijf bij beide "
+                        "eigenschappen een korte uitleg."
                     )
+
 
                 else:
 
@@ -1347,12 +1867,19 @@ Wie krijgt welke taak?
                             naam
                         ] = {
                             "voor_feedback":
-                                copy.deepcopy(scores),
+                                copy.deepcopy(
+                                    scores
+                                ),
                             "gekozen_trekken":
-                                list(gekozen_trekken),
+                                list(
+                                    gekozen_trekken
+                                ),
                             "motivaties":
-                                copy.deepcopy(motivaties)
+                                copy.deepcopy(
+                                    motivaties
+                                )
                         }
+
 
                     st.session_state.feedback[
                         naam
@@ -1363,16 +1890,24 @@ Wie krijgt welke taak?
                     )
 
 
+            # --------------------------------------------------
+            # FEEDBACK TONEN
+            # --------------------------------------------------
+
             if naam in st.session_state.feedback:
 
                 st.markdown(
-                    st.session_state.feedback[naam]
+                    st.session_state.feedback[
+                        naam
+                    ]
                 )
+
 
                 st.info(
                     "Bekijk jullie scores opnieuw. "
                     "Pas ze aan als de feedback jullie overtuigt."
                 )
+
 
                 if st.button(
                     "Bewaar en ga verder",
@@ -1387,13 +1922,20 @@ Wie krijgt welke taak?
                         for trek in TREKKEN
                     }
 
+
+                    # HIER worden uitsluitend de echte
+                    # leerlingantwoorden opgeslagen.
                     st.session_state.resultaten[
                         naam
-                    ] = definitief
+                    ] = copy.deepcopy(
+                        definitief
+                    )
+
 
                     st.session_state.stappenstatus[
                         f"analyse_{naam}"
                     ] = "voltooid"
+
 
                     if (
                         naam
@@ -1404,12 +1946,19 @@ Wie krijgt welke taak?
                             naam
                         ] = {
                             "voor_feedback":
-                                copy.deepcopy(definitief),
+                                copy.deepcopy(
+                                    definitief
+                                ),
                             "gekozen_trekken":
-                                list(gekozen_trekken),
+                                list(
+                                    gekozen_trekken
+                                ),
                             "motivaties":
-                                copy.deepcopy(motivaties)
+                                copy.deepcopy(
+                                    motivaties
+                                )
                         }
+
 
                     st.session_state.analyse_log[
                         naam
@@ -1419,12 +1968,22 @@ Wie krijgt welke taak?
                         definitief
                     )
 
-                    st.session_state.personage_index += 1
+
+                    st.session_state.personage_index += (
+                        1
+                    )
+
 
                     st.session_state.demo_stap = min(
                         7,
                         st.session_state.demo_stap + 1
                     )
+
+
+                    st.session_state.demo_navigatie_actief = (
+                        False
+                    )
+
 
                     st.rerun()
 
@@ -1439,9 +1998,11 @@ elif st.session_state.fase == "rollen":
         "Fase 2 — Stel de expeditie samen"
     )
 
+
     kaart_pad = Path(
         "images/eilandkaart.png"
     )
+
 
     if kaart_pad.exists():
 
@@ -1449,6 +2010,7 @@ elif st.session_state.fase == "rollen":
             str(kaart_pad),
             use_container_width=True
         )
+
 
     st.markdown("""
 De groep zal onbekend terrein moeten verkennen,
@@ -1463,18 +2025,18 @@ Open hieronder zijn of haar profiel.
 
 
     # --------------------------------------------------
-    # PROFIELEN
+    # PROFIELEN TERUG BEKIJKEN
     # --------------------------------------------------
 
     st.markdown(
         "### Bekijk de vijf jongeren opnieuw"
     )
 
-    zorg_dat_profielen_bestaan()
 
     for persoon in personages:
 
         naam = persoon["naam"]
+
 
         with st.expander(
             f"Bekijk {naam}"
@@ -1484,9 +2046,13 @@ Open hieronder zijn of haar profiel.
                 persoon["afbeelding"]
             )
 
-            kolom1, kolom2 = st.columns(
-                [1, 2]
+
+            kolom1, kolom2 = (
+                st.columns(
+                    [1, 2]
+                )
             )
+
 
             with kolom1:
 
@@ -1497,20 +2063,41 @@ Open hieronder zijn of haar profiel.
                         use_container_width=True
                     )
 
+
             with kolom2:
 
                 st.write(
                     persoon["beschrijving"]
                 )
 
+
                 profiel = (
-                    st.session_state
-                    .resultaten[naam]
+                    profiel_voor_weergave(
+                        naam
+                    )
                 )
 
-                st.markdown(
-                    "**Jullie definitieve inschatting:**"
-                )
+
+                if (
+                    st.session_state
+                    .stappenstatus
+                    .get(
+                        f"analyse_{naam}"
+                    )
+                    == "voltooid"
+                ):
+
+                    st.markdown(
+                        "**Jullie definitieve inschatting:**"
+                    )
+
+                else:
+
+                    st.markdown(
+                        "**Demo-profiel "
+                        "(persoonlijkheidsanalyse overgeslagen):**"
+                    )
+
 
                 for trek in TREKKEN:
 
@@ -1521,40 +2108,53 @@ Open hieronder zijn of haar profiel.
 
 
     # --------------------------------------------------
-    # ROLLEN
+    # ROLLEN VERDELEN
     # --------------------------------------------------
 
     st.markdown(
         "### Verdeel de rollen"
     )
 
+
     gekozen_rollen = {}
 
     gekozen_redenen = {}
+
 
     namen = [
         p["naam"]
         for p in personages
     ]
 
-    for rol, beschrijving in ROLLEN.items():
+
+    for rol, beschrijving in (
+        ROLLEN.items()
+    ):
 
         st.markdown(
             f"#### {rol}"
         )
 
+
         st.caption(
             beschrijving
         )
 
-        gekozen_rollen[rol] = st.selectbox(
+
+        gekozen_rollen[
+            rol
+        ] = st.selectbox(
             f"Wie wordt {rol}?",
             namen,
             key=f"rol_{rol}"
         )
 
-        gekozen_redenen[rol] = st.text_area(
-            "Waarom past deze persoon bij deze rol?",
+
+        gekozen_redenen[
+            rol
+        ] = st.text_area(
+            "Waarom past deze persoon "
+            "bij deze rol?",
             placeholder=(
                 "Verbind jullie keuze met "
                 "zijn of haar persoonlijkheid..."
@@ -1585,8 +2185,10 @@ Open hieronder zijn of haar profiel.
         ):
 
             st.warning(
-                "Geef elke rol aan een andere persoon."
+                "Geef elke rol aan "
+                "een andere persoon."
             )
+
 
         elif any(
             not tekst.strip()
@@ -1595,17 +2197,22 @@ Open hieronder zijn of haar profiel.
         ):
 
             st.warning(
-                "Leg bij elke rol kort uit waarom "
-                "die persoon volgens jullie geschikt is."
+                "Leg bij elke rol kort uit "
+                "waarom die persoon volgens "
+                "jullie geschikt is."
             )
+
 
         else:
 
+            # Ook hier worden alleen echte
+            # leerlingkeuzes opgeslagen.
             st.session_state.rollen = (
                 copy.deepcopy(
                     gekozen_rollen
                 )
             )
+
 
             st.session_state.rolredenen = (
                 copy.deepcopy(
@@ -1613,21 +2220,35 @@ Open hieronder zijn of haar profiel.
                 )
             )
 
+
             st.session_state.stappenstatus[
                 "rollen"
             ] = "voltooid"
 
+
+            # Normale leerlingroute:
+            # uitsluitend echte opgeslagen profielen.
             st.session_state.huidige_profielen = (
                 copy.deepcopy(
                     st.session_state.resultaten
                 )
             )
 
+
             st.session_state.fase = (
                 "simulatie"
             )
 
-            st.session_state.demo_stap = 8
+
+            st.session_state.demo_stap = (
+                8
+            )
+
+
+            st.session_state.demo_navigatie_actief = (
+                False
+            )
+
 
             st.rerun()
 
@@ -1642,13 +2263,16 @@ elif st.session_state.fase == "simulatie":
         st.session_state.simulatieronde
     )
 
+
     st.title(
         "Fase 3 — De expeditie"
     )
 
+
     kaart_pad = Path(
         "images/eilandkaart.png"
     )
+
 
     if kaart_pad.exists():
 
@@ -1656,6 +2280,7 @@ elif st.session_state.fase == "simulatie":
             str(kaart_pad),
             use_container_width=True
         )
+
 
     if ronde == 1:
 
@@ -1666,8 +2291,10 @@ elif st.session_state.fase == "simulatie":
     else:
 
         st.caption(
-            "De aangepaste groep probeert het opnieuw."
+            "De aangepaste groep "
+            "probeert het opnieuw."
         )
+
 
     st.info(
         "Doel: blijf leren uit wat misgaat en "
@@ -1676,11 +2303,13 @@ elif st.session_state.fase == "simulatie":
     )
 
 
+    # --------------------------------------------------
+    # HUIDIGE GROEP
+    # --------------------------------------------------
+
     with st.expander(
         "Bekijk de huidige expeditieploeg"
     ):
-
-        zorg_dat_profielen_bestaan()
 
         for naam, profiel in (
             st.session_state
@@ -1692,21 +2321,21 @@ elif st.session_state.fase == "simulatie":
                 f"**{naam}**"
             )
 
+
             st.write(
                 profiel_regel(
                     profiel
                 )
             )
 
+
         st.markdown(
             "**Rollen**"
         )
 
-        zorg_dat_rollen_bestaan()
 
         for rol, persoon in (
-            st.session_state
-            .rollen
+            actieve_rollen()
             .items()
         ):
 
@@ -1716,30 +2345,44 @@ elif st.session_state.fase == "simulatie":
 
 
     # --------------------------------------------------
-    # SIMULATIE STARTEN
+    # VERHAAL OPHALEN
     # --------------------------------------------------
 
-    if ronde not in (
-        st.session_state
-        .simulatieverhalen
-    ):
+    verhaal = huidig_verhaal(
+        ronde
+    )
+
+
+    # --------------------------------------------------
+    # NOG NIET GESIMULEERD
+    # --------------------------------------------------
+
+    if verhaal is None:
 
         if ronde == 1:
 
             st.markdown(
-                "Kan deze expeditie zes maanden overleven?"
+                "Kan deze expeditie "
+                "zes maanden overleven?"
             )
 
         else:
 
             st.markdown(
-                "Hebben jullie veranderingen genoeg geholpen?"
+                "Hebben jullie veranderingen "
+                "genoeg geholpen?"
             )
+
 
         if st.button(
             "Start de overlevingsproef",
             key=f"start_test_{ronde}"
         ):
+
+            st.session_state.demo_navigatie_actief = (
+                False
+            )
+
 
             profielen_tekst = (
                 profielen_naar_tekst(
@@ -1748,20 +2391,27 @@ elif st.session_state.fase == "simulatie":
                 )
             )
 
+
             rollen_tekst = (
                 rollen_naar_tekst()
             )
 
+
             if ronde <= 3:
 
-                uitkomst = "MISLUKT"
+                uitkomst = (
+                    "MISLUKT"
+                )
 
             else:
 
-                uitkomst = "SLAAGT"
+                uitkomst = (
+                    "SLAAGT"
+                )
 
 
             laatste_aanpassing = ""
+
 
             if (
                 st.session_state
@@ -1770,16 +2420,20 @@ elif st.session_state.fase == "simulatie":
 
                 laatste = (
                     st.session_state
-                    .aanpassingsgeschiedenis[-1]
+                    .aanpassingsgeschiedenis[
+                        -1
+                    ]
                 )
+
 
                 laatste_aanpassing += (
                     "Laatste persoonlijkheidsaanpassingen:\n"
                 )
 
-                for wijziging in laatste[
-                    "wijzigingen"
-                ]:
+
+                for wijziging in (
+                    laatste["wijzigingen"]
+                ):
 
                     laatste_aanpassing += (
                         f"- {wijziging['naam']}: "
@@ -1788,9 +2442,10 @@ elif st.session_state.fase == "simulatie":
                         f"naar {wijziging['nieuw']}\n"
                     )
 
+
                 laatste_aanpassing += (
-                    "\nWaarom de leerlingen dachten "
-                    "dat dit zou helpen:\n"
+                    "\nWaarom de leerlingen "
+                    "dachten dat dit zou helpen:\n"
                     f"{laatste['reden']}\n"
                 )
 
@@ -1798,8 +2453,8 @@ elif st.session_state.fase == "simulatie":
             if ronde <= 3:
 
                 eindinstructie = """
-Bij de sectie 'Uitkomst' moet duidelijk worden
-dat de groep de zes maanden niet heeft gehaald.
+Bij de sectie 'Uitkomst' moet duidelijk
+worden dat de groep de zes maanden niet heeft gehaald.
 """
 
             else:
@@ -1819,9 +2474,9 @@ Vermeld geen schip, helikopter, reddingsteam of redding.
 Je bent de verteller van een kort survivalverhaal
 voor leerlingen van ongeveer 17 jaar.
 
-BELANGRIJK:
+ZEER BELANGRIJK:
 Schrijf ALLES uitsluitend in correct Nederlands.
-Geen Engelse woorden, kopjes of zinnen.
+Gebruik geen Engelse woorden, Engelse kopjes of Engelse zinnen.
 
 Vijf jongeren zijn gestrand op een onbewoond eiland.
 Ze moeten zes maanden overleven en verkennen tegelijk
@@ -1879,6 +2534,7 @@ Maximaal 2 korte zinnen.
 - één kort punt
 """
 
+
             with st.spinner(
                 "De expeditie wordt gesimuleerd..."
             ):
@@ -1892,21 +2548,33 @@ Maximaal 2 korte zinnen.
                         )
                     )
 
+
                     st.session_state.simulatieverhalen[
                         ronde
                     ] = response.text
+
 
                     st.session_state.stappenstatus[
                         f"overlevingsproef_{ronde}"
                     ] = "voltooid"
 
+
+                    st.session_state.demo_stap = min(
+                        11,
+                        7 + ronde
+                    )
+
+
                     st.rerun()
+
 
                 except Exception as e:
 
                     st.error(
-                        "Er ging iets mis bij de simulatie."
+                        "Er ging iets mis "
+                        "bij de simulatie."
                     )
+
 
                     st.code(
                         str(e)
@@ -1914,7 +2582,7 @@ Maximaal 2 korte zinnen.
 
 
     # --------------------------------------------------
-    # RESULTAAT
+    # RESULTAAT TONEN
     # --------------------------------------------------
 
     else:
@@ -1926,8 +2594,10 @@ Maximaal 2 korte zinnen.
         if ronde <= 3:
 
             mislukt_pad = Path(
-                f"images/poging{ronde}_mislukt.png"
+                f"images/"
+                f"poging{ronde}_mislukt.png"
             )
+
 
             if mislukt_pad.exists():
 
@@ -1936,18 +2606,22 @@ Maximaal 2 korte zinnen.
                     use_container_width=True
                 )
 
+
             st.markdown(
-                st.session_state
-                .simulatieverhalen[ronde]
+                verhaal
             )
 
+
             st.error(
-                "Deze expeditie overleeft de zes maanden niet."
+                "Deze expeditie overleeft "
+                "de zes maanden niet."
             )
+
 
             st.markdown(
                 "## Jullie beurt"
             )
+
 
             st.info(
                 "Lees eerst goed wat er misging. "
@@ -1956,13 +2630,16 @@ Maximaal 2 korte zinnen.
                 "expeditie wél zes maanden kan overleven."
             )
 
+
             wijzigingen = []
+
 
             for i in range(2):
 
                 st.markdown(
                     f"### Aanpassing {i + 1}"
                 )
+
 
                 gekozen_naam = st.selectbox(
                     "Wie willen jullie aanpassen?",
@@ -1974,11 +2651,13 @@ Maximaal 2 korte zinnen.
                     key=f"aanp_naam_{ronde}_{i}"
                 )
 
+
                 gekozen_trek = st.selectbox(
                     "Welke persoonlijkheidstrek?",
                     TREKKEN,
                     key=f"aanp_trek_{ronde}_{i}"
                 )
+
 
                 oude_score = (
                     st.session_state
@@ -1989,9 +2668,12 @@ Maximaal 2 korte zinnen.
                     ]
                 )
 
+
                 st.caption(
-                    f"Huidige score: {oude_score}/10"
+                    f"Huidige score: "
+                    f"{oude_score}/10"
                 )
+
 
                 nieuwe_score = st.slider(
                     "Nieuwe score",
@@ -2010,11 +2692,16 @@ Maximaal 2 korte zinnen.
                     ]
                 )
 
+
                 wijzigingen.append({
-                    "naam": gekozen_naam,
-                    "trek": gekozen_trek,
-                    "oud": oude_score,
-                    "nieuw": nieuwe_score
+                    "naam":
+                        gekozen_naam,
+                    "trek":
+                        gekozen_trek,
+                    "oud":
+                        oude_score,
+                    "nieuw":
+                        nieuwe_score
                 })
 
 
@@ -2022,19 +2709,23 @@ Maximaal 2 korte zinnen.
                 "### Leg jullie strategie uit"
             )
 
+
             reden = st.text_area(
-                "Waarom verhogen deze veranderingen volgens jullie de kans op overleven?",
+                "Waarom verhogen deze veranderingen "
+                "volgens jullie de kans op overleven?",
                 placeholder=(
-                    "Verbind jullie aanpassingen met wat er "
-                    "tijdens deze expeditie misging."
+                    "Verbind jullie aanpassingen "
+                    "met wat er tijdens deze "
+                    "expeditie misging."
                 ),
                 key=f"reden_{ronde}"
             )
 
 
             st.info(
-                "Blijf persoonlijkheden aanpassen en opnieuw testen "
-                "tot jullie een groep hebben gemaakt die het eiland kan overleven."
+                "Blijf persoonlijkheden aanpassen "
+                "en opnieuw testen tot jullie een groep "
+                "hebben gemaakt die het eiland kan overleven."
             )
 
 
@@ -2051,13 +2742,17 @@ Maximaal 2 korte zinnen.
                     for w in wijzigingen
                 ]
 
-                if len(
-                    set(paren)
-                ) != len(paren):
+
+                if (
+                    len(set(paren))
+                    != len(paren)
+                ):
 
                     st.warning(
-                        "Kies twee verschillende aanpassingen."
+                        "Kies twee verschillende "
+                        "aanpassingen."
                     )
+
 
                 elif any(
                     w["nieuw"] == w["oud"]
@@ -2068,12 +2763,15 @@ Maximaal 2 korte zinnen.
                         "Verander beide scores werkelijk."
                     )
 
+
                 elif not reden.strip():
 
                     st.warning(
-                        "Leg eerst uit waarom de veranderingen "
-                        "de kans op overleven verhogen."
+                        "Leg eerst uit waarom "
+                        "de veranderingen de kans "
+                        "op overleven verhogen."
                     )
+
 
                 else:
 
@@ -2084,30 +2782,47 @@ Maximaal 2 korte zinnen.
                         )
                     )
 
+
                     for wijziging in wijzigingen:
 
                         nieuwe_profielen[
                             wijziging["naam"]
                         ][
                             wijziging["trek"]
-                        ] = wijziging[
-                            "nieuw"
-                        ]
+                        ] = (
+                            wijziging["nieuw"]
+                        )
+
 
                     st.session_state.aanpassingsgeschiedenis.append({
                         "wijzigingen":
-                            copy.deepcopy(wijzigingen),
+                            copy.deepcopy(
+                                wijzigingen
+                            ),
                         "reden":
                             reden
                     })
+
 
                     st.session_state.huidige_profielen = (
                         nieuwe_profielen
                     )
 
-                    st.session_state.simulatieronde += 1
 
-                    st.session_state.redding_onthuld = False
+                    st.session_state.simulatieronde += (
+                        1
+                    )
+
+
+                    st.session_state.redding_onthuld = (
+                        False
+                    )
+
+
+                    st.session_state.demo_navigatie_actief = (
+                        False
+                    )
+
 
                     st.rerun()
 
@@ -2119,9 +2834,9 @@ Maximaal 2 korte zinnen.
         else:
 
             st.markdown(
-                st.session_state
-                .simulatieverhalen[ronde]
+                verhaal
             )
+
 
             if not st.session_state.redding_onthuld:
 
@@ -2129,15 +2844,27 @@ Maximaal 2 korte zinnen.
                     "## De zes maanden zijn voorbij..."
                 )
 
+
                 st.write(
-                    "De groep staat op het strand en kijkt naar de horizon."
+                    "De groep staat op het strand "
+                    "en kijkt naar de horizon."
                 )
 
+
                 if st.button(
-                    "Ontdek of jullie dit keer wel gered zijn"
+                    "Ontdek of jullie dit keer "
+                    "wel gered zijn"
                 ):
 
-                    st.session_state.redding_onthuld = True
+                    st.session_state.redding_onthuld = (
+                        True
+                    )
+
+
+                    st.session_state.demo_stap = (
+                        12
+                    )
+
 
                     st.rerun()
 
@@ -2152,6 +2879,7 @@ Maximaal 2 korte zinnen.
                     "images/gered.png"
                 )
 
+
                 if gered_pad.exists():
 
                     st.image(
@@ -2159,9 +2887,12 @@ Maximaal 2 korte zinnen.
                         use_container_width=True
                     )
 
+
                 st.success(
-                    "Ze hebben het gehaald. De groep wordt gered."
+                    "Ze hebben het gehaald. "
+                    "De groep wordt gered."
                 )
+
 
                 st.markdown("""
 Na zes maanden verschijnt eindelijk hulp.
@@ -2179,18 +2910,26 @@ die lang genoeg kon samenwerken, verkennen en overleven.
                     "Overzicht om in te dienen"
                 )
 
+
                 st.write(
-                    "Dit overzicht toont jullie eerste persoonlijkheidsinschattingen, "
-                    "argumentaties, aanpassingen na feedback, expeditierollen "
+                    "Dit overzicht toont jullie eerste "
+                    "persoonlijkheidsinschattingen, argumentaties, "
+                    "aanpassingen na feedback, expeditierollen "
                     "en veranderingen tijdens de overlevingsproeven."
                 )
 
+
                 st.info(
-                    "Download hieronder het overzicht en dien het daarna in "
-                    "via de uploadzone van het vak **Gedragswetenschappen**."
+                    "Download hieronder het overzicht "
+                    "en dien het daarna in via de uploadzone "
+                    "van het vak **Gedragswetenschappen**."
                 )
 
-                verslag = maak_verslag()
+
+                verslag = (
+                    maak_verslag()
+                )
+
 
                 st.text_area(
                     "Bekijk jullie overzicht",
@@ -2198,12 +2937,16 @@ die lang genoeg kon samenwerken, verkennen en overleven.
                     height=650
                 )
 
+
                 st.download_button(
                     label="Download het overzicht",
                     data=verslag,
-                    file_name="expeditie_eiland_overzicht.txt",
+                    file_name=(
+                        "expeditie_eiland_overzicht.txt"
+                    ),
                     mime="text/plain"
                 )
+
 
                 if st.button(
                     "Opnieuw beginnen"
@@ -2216,38 +2959,30 @@ die lang genoeg kon samenwerken, verkennen en overleven.
 # BIJNA ONZICHTBARE NAVIGATIE RECHTSONDER
 # ==================================================
 
-# ==================================================
-# VERBORGEN NAVIGATIE RECHTSONDER
-# ==================================================
-
 st.markdown(
     """
     <style>
 
-    /* Het volledige geheime klikgebied */
     .st-key-geheime_nav {
         position: fixed;
-        right: 10px;
-        bottom: 10px;
-        width: 130px;
-        padding: 15px;
-        opacity: 0.05;
+        right: 8px;
+        bottom: 8px;
+        width: 120px;
+        padding: 12px;
+        opacity: 0.04;
         z-index: 999999;
         transition: opacity 0.2s ease;
     }
 
-    /* Als je met de muis in de rechteronderhoek komt */
     .st-key-geheime_nav:hover {
         opacity: 1;
     }
 
-    /* Kleine neutrale knoppen */
     .st-key-geheime_nav button {
-        min-height: 30px !important;
-        height: 30px !important;
-        padding: 0px 7px !important;
-        font-size: 14px !important;
-        border: 1px solid rgba(120,120,120,0.35) !important;
+        min-height: 29px !important;
+        height: 29px !important;
+        padding: 0px 6px !important;
+        font-size: 13px !important;
     }
 
     </style>
@@ -2256,9 +2991,14 @@ st.markdown(
 )
 
 
-with st.container(key="geheime_nav"):
+with st.container(
+    key="geheime_nav"
+):
 
-    links, rechts = st.columns(2)
+    links, rechts = st.columns(
+        2
+    )
+
 
     with links:
 
@@ -2273,9 +3013,14 @@ with st.container(key="geheime_nav"):
                 st.session_state.demo_stap - 1
             )
 
-            ga_naar_demo_stap(nieuwe_stap)
+
+            ga_naar_demo_stap(
+                nieuwe_stap
+            )
+
 
             st.rerun()
+
 
     with rechts:
 
@@ -2285,13 +3030,21 @@ with st.container(key="geheime_nav"):
             help="Volgende scherm"
         ):
 
+            # De stap die je met deze knop
+            # verlaat telt als overgeslagen
+            # wanneer ze niet normaal voltooid werd.
             markeer_huidige_stap_als_overgeslagen()
+
 
             nieuwe_stap = min(
                 12,
                 st.session_state.demo_stap + 1
             )
 
-            ga_naar_demo_stap(nieuwe_stap)
+
+            ga_naar_demo_stap(
+                nieuwe_stap
+            )
+
 
             st.rerun()

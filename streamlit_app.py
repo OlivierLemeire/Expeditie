@@ -2408,63 +2408,52 @@ De verplichte uitkomst achter de schermen is:
 
 BELANGRIJKE REGELS VOOR HET VERHAAL:
 
+- Schrijf voor leerlingen van ongeveer 16 jaar.
+- Gebruik korte, eenvoudige zinnen en gewone woorden.
+- Vermijd moeilijke of abstracte formuleringen.
 - Maak duidelijk dat de keuzes van de leerlingen gevolgen hebben.
-- Noem de jongeren regelmatig bij naam.
-- Verwerk hun expeditierollen actief in het verhaal.
-- Leg concrete verbanden tussen:
-  persoonlijkheid → gedrag → gevolg voor de groep.
-- Baseer je daarbij op de scores die de leerlingen hebben gekozen.
-- Laat minstens 4 van de 5 jongeren een duidelijke rol spelen in het verhaal.
-- Laat eigenschappen zowel voordelen als nadelen hebben.
-- Persoonlijkheid bepaalt gedrag niet volledig, maar maakt bepaalde reacties waarschijnlijker.
+- Noem de jongeren bij naam.
+- Gebruik hun expeditierollen in het verhaal.
+- Leg duidelijk het verband:
+  persoonlijkheid → gedrag → gevolg.
+- Laat minstens 4 van de 5 jongeren iets concreets doen.
+- Laat zien dat een persoonlijkheidstrek zowel kan helpen als problemen kan geven.
 - Vermijd vage zinnen zoals:
-  'de groep werkte slecht samen'.
-  Vertel WIE iets deed, WAAROM dat bij zijn of haar persoonlijkheid past
-  en WAT daarvan het gevolg was.
-- Gebruik concrete situaties:
-  water zoeken, voedsel bewaren, kamp bouwen,
-  onbekend terrein verkennen, risico's nemen,
-  beslissingen onder tijdsdruk, stress en conflicten.
-- Bij een nieuwe poging moet duidelijk worden wat door de
-  aangepaste persoonlijkheidsscores beter gaat.
-- Noem minstens één concrete verbetering ten opzichte van de vorige poging.
+  "de groep werkt niet goed samen".
+  Vertel wie wat doet en wat daarvan het gevolg is.
+- Gebruik concrete problemen:
+  voedsel, water, kamp, verkennen, stress, risico's en ruzies.
+- Bij een nieuwe poging moet duidelijk worden wat door de aanpassingen beter gaat.
+- Noem minstens één verbetering tegenover de vorige poging.
 - Herhaal niet telkens hetzelfde probleem.
-- Schrijf levendig en verhalend, maar niet overdreven dramatisch.
-- Bij MISLUKT haalt de groep uiteindelijk de zes maanden niet.
+- Bij MISLUKT haalt de groep de zes maanden niet.
 - Beschrijf overlijden niet grafisch.
 - Bij SLAAGT overleeft de groep zes maanden.
-- De uiteindelijke redding wordt pas later aan de leerlingen onthuld.
-- Houd het totale antwoord ongeveer tussen 300 en 400 woorden.
-- ALLES moet in het Nederlands zijn.
+- Verklap de redding nog niet.
+- Houd het hele verhaal kort: ongeveer 180 tot 230 woorden.
+- Schrijf ALLES in het Nederlands.
 
 Gebruik exact deze structuur:
 
-### De eerste weken
-Vertel in ongeveer 4 à 5 zinnen hoe de groep
-het kamp organiseert, voedsel en water zoekt
-en met de eerste problemen omgaat.
-Noem concrete personen, hun rol en hun persoonlijkheid.
+### De eerste maanden
+Schrijf één korte alinea van ongeveer 5 à 6 zinnen.
+Vertel hoe het kamp, voedsel, water en de eerste verkenningen verlopen.
+Noem verschillende jongeren en laat zien hoe hun persoonlijkheid en rol helpen of problemen veroorzaken.
 
-### De eerste grote verkenning
-Vertel in ongeveer 4 à 5 zinnen wat er gebeurt wanneer
-ze verder het onbekende eiland intrekken.
-Laat zien hoe hun persoonlijkheden en rollen
-hun beslissingen beïnvloeden.
-
-### De beslissende weken
-Vertel in ongeveer 4 à 5 zinnen hoe de situatie moeilijker wordt.
-Laat eerdere keuzes gevolgen hebben.
-Maak duidelijk waarom de groep uiteindelijk wel of niet standhoudt.
+### Het wordt moeilijk
+Schrijf één korte alinea van ongeveer 5 à 6 zinnen.
+Er ontstaat een serieus probleem.
+Laat zien hoe de jongeren reageren en hoe hun persoonlijkheid invloed heeft op wat er gebeurt.
+Maak duidelijk waarom de groep uiteindelijk wel of niet zes maanden volhoudt.
 
 ### Uitkomst
-Geef in maximaal 3 zinnen de toestand van de groep na zes maanden.
-Volg hierbij strikt de instructie over de verplichte uitkomst.
+Geef maximaal 2 korte zinnen.
+Volg hierbij strikt de verplichte uitkomst.
 
-### Wat maakte het verschil?
-Geef precies 3 korte punten in deze vorm:
+### Waarom?
+Geef precies 3 korte punten:
 
 - **Naam — persoonlijkheidstrek / rol:** concreet gevolg.
-"""
 
 
             with st.spinner(

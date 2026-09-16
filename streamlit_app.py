@@ -280,7 +280,6 @@ ROLLEN = {
 
 standaard_state = {
 
-    # Echte leerlinggegevens
     "fase": "intro",
     "groepsleden": "",
     "analyse_intro_getoond": False,
@@ -297,7 +296,7 @@ standaard_state = {
     "redding_onthuld": False,
     "stappenstatus": {},
 
-    # Alleen voor verborgen presentatieknoppen
+    # Alleen voor verborgen presentatienavigatie
     "demo_stap": 0,
     "demo_navigatie_actief": False,
     "demo_profielen": {},
@@ -317,7 +316,7 @@ for sleutel, waarde in standaard_state.items():
 
 
 # ==================================================
-# HULPFUNCTIES — PROFIELEN
+# HULPFUNCTIES — DEMO EN PROFIELEN
 # ==================================================
 
 def standaard_profiel(naam):
@@ -372,6 +371,7 @@ if not st.session_state.demo_rollen:
 if not st.session_state.demo_rolredenen:
 
     st.session_state.demo_rolredenen = {
+
         "Verkenner":
             "Noor staat sterk open voor nieuwe ervaringen.",
 
@@ -390,13 +390,6 @@ if not st.session_state.demo_rolredenen:
 
 
 def profiel_voor_weergave(naam):
-    """
-    Geeft ALTIJD echte leerlinggegevens terug als de leerling
-    deze analyse werkelijk heeft voltooid.
-
-    Alleen bij een overgeslagen stap in de verborgen demo-navigatie
-    wordt een apart demo-profiel gebruikt.
-    """
 
     status = st.session_state.stappenstatus.get(
         f"analyse_{naam}"
@@ -511,14 +504,15 @@ def rollen_naar_tekst():
 
         tekst += (
             f"- {rol}: {persoon}. "
-            f"Reden: {redenen.get(rol, '')}\n"
+            f"Reden van de leerlingen: "
+            f"{redenen.get(rol, '')}\n"
         )
 
     return tekst
 
 
 # ==================================================
-# SNELLE FEEDBACK
+# SNELLE BIG FIVE-FEEDBACK
 # ==================================================
 
 def score_feedback(
@@ -735,11 +729,7 @@ def maak_verslag():
             )
 
             lijnen.append("")
-
-            lijnen.append(
-                "-" * 30
-            )
-
+            lijnen.append("-" * 30)
             lijnen.append("")
 
             continue
@@ -752,11 +742,7 @@ def maak_verslag():
             )
 
             lijnen.append("")
-
-            lijnen.append(
-                "-" * 30
-            )
-
+            lijnen.append("-" * 30)
             lijnen.append("")
 
             continue
@@ -884,17 +870,12 @@ def maak_verslag():
         else:
 
             lijnen.append(
-                "Na de feedback werden "
-                "geen scores aangepast."
+                "Na de feedback werden geen scores aangepast."
             )
 
 
         lijnen.append("")
-
-        lijnen.append(
-            "-" * 30
-        )
-
+        lijnen.append("-" * 30)
         lijnen.append("")
 
 
@@ -1008,7 +989,7 @@ def maak_verslag():
 
 
     # --------------------------------------------------
-    # 4. AANPASSINGEN
+    # 4. PERSOONLIJKHEIDSAANPASSINGEN
     # --------------------------------------------------
 
     lijnen.append(
@@ -1069,8 +1050,7 @@ def maak_verslag():
     lijnen.append("")
 
     lijnen.append(
-        "5. UITEINDELIJKE "
-        "PERSOONLIJKHEIDSPROFIELEN"
+        "5. UITEINDELIJKE PERSOONLIJKHEIDSPROFIELEN"
     )
 
     lijnen.append("")
@@ -1181,7 +1161,6 @@ def markeer_huidige_stap_als_overgeslagen():
     )
 
 
-    # Noor t/m Lina
     if 2 <= stap <= 6:
 
         naam = (
@@ -1207,7 +1186,6 @@ def markeer_huidige_stap_als_overgeslagen():
             ] = "overgeslagen"
 
 
-    # Rollen
     elif stap == 7:
 
         if (
@@ -1222,7 +1200,6 @@ def markeer_huidige_stap_als_overgeslagen():
             ] = "overgeslagen"
 
 
-    # Overlevingsproeven
     elif 8 <= stap <= 11:
 
         ronde = stap - 7
@@ -1249,75 +1226,67 @@ def demo_verhaal(ronde):
     verhalen = {
 
         1: """
-### De kust
-De groep bouwt een kamp, maar de taakverdeling verloopt chaotisch en de voedselvoorraad wordt slecht bijgehouden.
+### De eerste weken
+Elias probeert als planner onmiddellijk een systeem voor water en voedsel in te voeren. Noor wil als verkenner liever meteen het eiland ontdekken en vertrekt geregeld zonder eerst met hem af te spreken. Mats helpt snel een schuilplaats te bouwen, maar door zijn lage zorgvuldigheid laat hij gereedschap rondslingeren en begint hij aan nieuwe taken voordat oude problemen zijn opgelost. Aya probeert de spanningen tussen Mats en Elias te verminderen, maar spreekt hen zelden rechtstreeks tegen.
 
-### Het binnenland
-Tijdens de verkenning ontstaan discussies over risico's en planning.
+### De eerste grote verkenning
+Noor ontdekt dankzij haar hoge openheid een stroom dieper in het bos, maar neemt te weinig materiaal mee voor de tocht. Lina merkt als onderzoeker dat donkere wolken zich snel opstapelen en waarschuwt voor zwaar weer. Mats wil ondanks die waarschuwing verder trekken; zijn kalmte helpt tegen paniek, maar zijn bereidheid risico's te nemen brengt de groep verder van het kamp. Wanneer de storm losbarst, moeten ze halsoverkop terugkeren.
 
-### Het hoogste punt
-De groep raakt uitgeput en de samenwerking valt uiteindelijk uiteen.
+### De beslissende weken
+De voedselvoorraad blijkt slecht bijgehouden en delen van het kamp zijn beschadigd. Elias wordt steeds kritischer tegenover Noor en Mats, terwijl Aya de conflicten probeert te sussen zonder echt duidelijke grenzen te stellen. Lina ziet verschillende problemen aankomen, maar krijgt de groep niet altijd mee. Uiteindelijk stapelen slechte planning, conflicten en uitputting zich te sterk op.
 
-### Uitkomst
-De expeditie haalt de zes maanden niet.
-
-### Waarom?
-- De planning en taakverdeling waren onvoldoende.
-- Conflicten werden niet goed opgelost.
+### Wat maakte het verschil?
+- **Noor — hoge openheid / verkenner:** hielp de groep nieuwe plaatsen ontdekken, maar haar lage zorgvuldigheid zorgde voor slechte voorbereiding.
+- **Elias — hoge zorgvuldigheid / planner:** bracht structuur, maar zijn kritische houding leidde tot extra spanning.
+- **Mats — hoge emotionele stabiliteit / kampbouwer:** bleef kalm onder druk, maar nam te snel risico's.
 """,
 
         2: """
-### De kust
-De organisatie verloopt beter dan voordien en de voorraden worden zorgvuldiger beheerd.
+### De eerste weken
+De groep begint beter georganiseerd dan de vorige keer. De aangepaste persoonlijkheden zorgen ervoor dat afspraken beter worden nagekomen en Elias hoeft minder vaak achter anderen aan te zitten. Noor bereidt haar verkenningen zorgvuldiger voor en Lina houdt systematisch bij waar water en eetbare planten worden gevonden. Toch blijft de groep sterk afhankelijk van enkele personen.
 
-### Het binnenland
-Tijdens een moeilijke tocht neemt de stress echter sterk toe.
+### De eerste grote verkenning
+Tijdens een tocht naar een hoger deel van het eiland merkt Lina dat het terrein gevaarlijker wordt. Mats wil doorzetten omdat hij weinig angst ervaart en snel beslist. Aya probeert iedereen samen te houden, maar raakt zelf steeds gespannener wanneer de groep verdwaalt. Noor bedenkt uiteindelijk een alternatieve route terug, waardoor de groep veilig het kamp bereikt.
 
-### Het hoogste punt
-De groep houdt uiteindelijk onvoldoende samen.
+### De beslissende weken
+De planning is duidelijk beter dan tijdens de vorige expeditie, maar langdurige stress begint zijn tol te eisen. Aya piekert steeds meer en Elias raakt geïrriteerd wanneer afspraken niet exact worden gevolgd. Mats reageert daar scherp op, waardoor kleine meningsverschillen grotere conflicten worden. De groep functioneert langer dan de eerste keer, maar houdt uiteindelijk onvoldoende stand.
 
-### Uitkomst
-Ook deze expeditie haalt de zes maanden niet.
-
-### Waarom?
-- De planning is verbeterd.
-- Stress en samenwerking blijven kwetsbaar.
+### Wat maakte het verschil?
+- **Noor — verhoogde zorgvuldigheid:** de verkenningen verlopen beter voorbereid dan tijdens de eerste poging.
+- **Aya — lage emotionele stabiliteit / groepscoördinator:** probeert anderen te helpen, maar raakt onder langdurige stress zelf overbelast.
+- **Mats en Elias:** hun verschillende manier van beslissen veroorzaakt opnieuw spanningen.
 """,
 
         3: """
-### De kust
-Het kamp functioneert deze keer behoorlijk goed.
+### De eerste weken
+De groep heeft inmiddels een goed systeem voor voedsel, water en onderhoud van het kamp. Elias en Noor vullen elkaar beter aan: hij bewaakt de planning terwijl zij nieuwe oplossingen zoekt. Aya is rustiger dan voordien en durft als groepscoördinator sneller tussenbeide te komen wanneer een conflict ontstaat. Daardoor blijft het kamp gedurende lange tijd stabiel.
 
-### Het binnenland
-De groep verkent een groter deel van het eiland, maar neemt onderweg enkele slechte risico's.
+### De eerste grote verkenning
+Lina ontdekt aanwijzingen dat er op het hoger gelegen deel van het eiland mogelijk een betere uitkijkplaats is. Mats stelt voor onmiddellijk te vertrekken en Noor ziet daar een interessante kans in. Elias wil eerst extra voedsel en water voorzien. De groep kiest uiteindelijk voor een compromis, maar wanneer het weer omslaat besluit Mats toch sneller verder te gaan dan afgesproken.
 
-### Het hoogste punt
-Een combinatie van vermoeidheid en slechte beslissingen wordt uiteindelijk fataal.
+### De beslissende weken
+De meeste problemen van de vorige expedities zijn opgelost. Toch wordt één riskante beslissing tijdens de bergtocht doorslaggevend. Mats blijft onder druk bijzonder kalm, maar onderschat daardoor het gevaar; Noor laat zich door de mogelijkheid van een nieuwe ontdekking overtuigen om hem te volgen. De groep komt daardoor in een situatie waaruit ze te laat kan terugkeren.
 
-### Uitkomst
-De groep haalt de redding opnieuw niet.
-
-### Waarom?
-- Samenwerking en planning zijn verbeterd.
-- De groep neemt nog te veel onverantwoorde risico's.
+### Wat maakte het verschil?
+- **Aya — hogere emotionele stabiliteit:** de samenwerking verloopt duidelijk beter dan voordien.
+- **Elias — hoge zorgvuldigheid:** voorraden en voorbereiding vormen deze keer nauwelijks een probleem.
+- **Mats en Noor — risico en openheid:** eigenschappen die de verkenning helpen, leiden nu samen tot te veel risico.
 """,
 
         4: """
-### De kust
-De groep verdeelt de taken efficiënt en bouwt een stevig kamp.
+### De eerste weken
+De groep werkt vanaf het begin volgens een duidelijk systeem. Elias beheert de voorraden, maar hoeft niet meer voortdurend anderen te corrigeren omdat Noor haar verkenningen beter voorbereidt en Mats zorgvuldiger met materiaal omgaat. Aya houdt als groepscoördinator actief in de gaten wanneer spanningen oplopen en durft conflicten nu sneller bespreekbaar te maken. Lina gebruikt haar nieuwsgierigheid en nauwkeurigheid om kennis over water, planten en weerspatronen te verzamelen.
 
-### Het binnenland
-Tijdens de verkenningen vullen de verschillende persoonlijkheden elkaar goed aan.
+### De eerste grote verkenning
+Wanneer Lina een mogelijke route naar het hoogste deel van het eiland ontdekt, wordt de tocht deze keer vooraf gezamenlijk gepland. Noor wil graag een nieuwe route proberen, maar controleert eerst samen met Elias de voorraad. Mats blijft kalm wanneer onderweg een deel van het pad instort, maar neemt niet meteen alleen een beslissing. De groep bespreekt de opties en vindt dankzij Noor en Lina een veiligere omweg.
 
-### Het hoogste punt
-Ondanks verschillende tegenslagen blijft de groep samenwerken en bereikt ze het einde van de zesde maand.
+### De beslissende weken
+Na maanden op het eiland zijn ze moe, maar de sterke punten van de verschillende persoonlijkheden vullen elkaar beter aan. Elias zorgt voor structuur, Noor en Lina vinden nieuwe oplossingen, Mats blijft rustig wanneer iets misloopt en Aya houdt de groep sociaal bijeen. Geen enkele trek lost alles op, maar de combinatie werkt veel beter dan bij de vorige expedities. De groep bereikt uiteindelijk het einde van de zesde maand.
 
-### Uitkomst
-De zes maanden zijn voorbij. De jongeren verzamelen zich op het strand en kijken naar de horizon.
-
-### Waarom?
-- Planning, samenwerking en aanpassingsvermogen zijn beter in evenwicht.
-- De verschillende persoonlijkheden vullen elkaar aan.
+### Wat maakte het verschil?
+- **De persoonlijkheidsaanpassingen:** eerdere zwakke punten zoals slechte planning, stress en impulsieve risico's zijn verminderd.
+- **De rolverdeling:** de jongeren kunnen hun verschillende sterke kanten doelgericht gebruiken.
+- **De combinatie:** niet één ideale persoonlijkheid, maar een beter evenwicht binnen de groep maakt het verschil.
 """
     }
 
@@ -1346,20 +1315,12 @@ def ga_naar_demo_stap(stap):
         )
 
 
-    # ----------------------------------------------
-    # 0 — openingspagina
-    # ----------------------------------------------
-
     if stap == 0:
 
         st.session_state.fase = (
             "intro"
         )
 
-
-    # ----------------------------------------------
-    # 1 — uitleg Big Five
-    # ----------------------------------------------
 
     elif stap == 1:
 
@@ -1376,10 +1337,6 @@ def ga_naar_demo_stap(stap):
         )
 
 
-    # ----------------------------------------------
-    # 2 t/m 6 — jongeren
-    # ----------------------------------------------
-
     elif 2 <= stap <= 6:
 
         st.session_state.fase = (
@@ -1395,10 +1352,6 @@ def ga_naar_demo_stap(stap):
         )
 
 
-    # ----------------------------------------------
-    # 7 — rollen
-    # ----------------------------------------------
-
     elif stap == 7:
 
         st.session_state.fase = (
@@ -1409,10 +1362,6 @@ def ga_naar_demo_stap(stap):
             5
         )
 
-
-    # ----------------------------------------------
-    # 8 t/m 11 — overlevingsproeven
-    # ----------------------------------------------
 
     elif 8 <= stap <= 11:
 
@@ -1461,10 +1410,6 @@ def ga_naar_demo_stap(stap):
             )
 
 
-    # ----------------------------------------------
-    # 12 — redding
-    # ----------------------------------------------
-
     elif stap == 12:
 
         st.session_state.fase = (
@@ -1506,7 +1451,6 @@ def ga_naar_demo_stap(stap):
 
 def huidig_verhaal(ronde):
 
-    # Echte simulatie heeft altijd voorrang.
     if (
         ronde
         in st.session_state.simulatieverhalen
@@ -1520,8 +1464,6 @@ def huidig_verhaal(ronde):
         )
 
 
-    # Demo-verhaal alleen als de
-    # verborgen navigatie werd gebruikt.
     if (
         st.session_state.demo_navigatie_actief
         and ronde
@@ -1691,10 +1633,6 @@ Daarna gebruiken jullie deze profielen om de expeditie samen te stellen.
         )
 
 
-        # --------------------------------------------------
-        # ALLE PERSONEN KLAAR
-        # --------------------------------------------------
-
         if index >= len(personages):
 
             st.success(
@@ -1728,10 +1666,6 @@ Wie krijgt welke taak?
 
                 st.rerun()
 
-
-        # --------------------------------------------------
-        # ÉÉN PERSOON
-        # --------------------------------------------------
 
         else:
 
@@ -1890,10 +1824,6 @@ Wie krijgt welke taak?
                     )
 
 
-            # --------------------------------------------------
-            # FEEDBACK TONEN
-            # --------------------------------------------------
-
             if naam in st.session_state.feedback:
 
                 st.markdown(
@@ -1923,8 +1853,6 @@ Wie krijgt welke taak?
                     }
 
 
-                    # HIER worden uitsluitend de echte
-                    # leerlingantwoorden opgeslagen.
                     st.session_state.resultaten[
                         naam
                     ] = copy.deepcopy(
@@ -2024,10 +1952,6 @@ Open hieronder zijn of haar profiel.
 """)
 
 
-    # --------------------------------------------------
-    # PROFIELEN TERUG BEKIJKEN
-    # --------------------------------------------------
-
     st.markdown(
         "### Bekijk de vijf jongeren opnieuw"
     )
@@ -2106,10 +2030,6 @@ Open hieronder zijn of haar profiel.
                         f"**{profiel[trek]}/10**"
                     )
 
-
-    # --------------------------------------------------
-    # ROLLEN VERDELEN
-    # --------------------------------------------------
 
     st.markdown(
         "### Verdeel de rollen"
@@ -2205,8 +2125,6 @@ Open hieronder zijn of haar profiel.
 
         else:
 
-            # Ook hier worden alleen echte
-            # leerlingkeuzes opgeslagen.
             st.session_state.rollen = (
                 copy.deepcopy(
                     gekozen_rollen
@@ -2226,8 +2144,6 @@ Open hieronder zijn of haar profiel.
             ] = "voltooid"
 
 
-            # Normale leerlingroute:
-            # uitsluitend echte opgeslagen profielen.
             st.session_state.huidige_profielen = (
                 copy.deepcopy(
                     st.session_state.resultaten
@@ -2303,10 +2219,6 @@ elif st.session_state.fase == "simulatie":
     )
 
 
-    # --------------------------------------------------
-    # HUIDIGE GROEP
-    # --------------------------------------------------
-
     with st.expander(
         "Bekijk de huidige expeditieploeg"
     ):
@@ -2344,17 +2256,13 @@ elif st.session_state.fase == "simulatie":
             )
 
 
-    # --------------------------------------------------
-    # VERHAAL OPHALEN
-    # --------------------------------------------------
-
     verhaal = huidig_verhaal(
         ronde
     )
 
 
     # --------------------------------------------------
-    # NOG NIET GESIMULEERD
+    # SIMULATIE NOG NIET GESTART
     # --------------------------------------------------
 
     if verhaal is None:
@@ -2453,8 +2361,8 @@ elif st.session_state.fase == "simulatie":
             if ronde <= 3:
 
                 eindinstructie = """
-Bij de sectie 'Uitkomst' moet duidelijk
-worden dat de groep de zes maanden niet heeft gehaald.
+Bij de sectie 'Uitkomst' moet duidelijk worden
+dat de groep de zes maanden niet heeft gehaald.
 """
 
             else:
@@ -2471,16 +2379,16 @@ Vermeld geen schip, helikopter, reddingsteam of redding.
 
 
             prompt = f"""
-Je bent de verteller van een kort survivalverhaal
+Je bent de verteller van een levendig survival- en expeditieverhaal
 voor leerlingen van ongeveer 17 jaar.
 
 ZEER BELANGRIJK:
 Schrijf ALLES uitsluitend in correct Nederlands.
 Gebruik geen Engelse woorden, Engelse kopjes of Engelse zinnen.
+Ook alle titels en tussenkopjes moeten volledig in het Nederlands zijn.
 
 Vijf jongeren zijn gestrand op een onbewoond eiland.
-Ze moeten zes maanden overleven en verkennen tegelijk
-een onbekend gebied.
+Ze moeten zes maanden overleven en tegelijk onbekend terrein verkennen.
 
 PERSOONLIJKHEDEN:
 
@@ -2498,40 +2406,64 @@ De verplichte uitkomst achter de schermen is:
 
 {eindinstructie}
 
-REGELS:
+BELANGRIJKE REGELS VOOR HET VERHAAL:
 
-- Bij MISLUKT haalt de groep de zes maanden niet.
+- Maak duidelijk dat de keuzes van de leerlingen gevolgen hebben.
+- Noem de jongeren regelmatig bij naam.
+- Verwerk hun expeditierollen actief in het verhaal.
+- Leg concrete verbanden tussen:
+  persoonlijkheid → gedrag → gevolg voor de groep.
+- Baseer je daarbij op de scores die de leerlingen hebben gekozen.
+- Laat minstens 4 van de 5 jongeren een duidelijke rol spelen in het verhaal.
+- Laat eigenschappen zowel voordelen als nadelen hebben.
+- Persoonlijkheid bepaalt gedrag niet volledig, maar maakt bepaalde reacties waarschijnlijker.
+- Vermijd vage zinnen zoals:
+  'de groep werkte slecht samen'.
+  Vertel WIE iets deed, WAAROM dat bij zijn of haar persoonlijkheid past
+  en WAT daarvan het gevolg was.
+- Gebruik concrete situaties:
+  water zoeken, voedsel bewaren, kamp bouwen,
+  onbekend terrein verkennen, risico's nemen,
+  beslissingen onder tijdsdruk, stress en conflicten.
+- Bij een nieuwe poging moet duidelijk worden wat door de
+  aangepaste persoonlijkheidsscores beter gaat.
+- Noem minstens één concrete verbetering ten opzichte van de vorige poging.
+- Herhaal niet telkens hetzelfde probleem.
+- Schrijf levendig en verhalend, maar niet overdreven dramatisch.
+- Bij MISLUKT haalt de groep uiteindelijk de zes maanden niet.
 - Beschrijf overlijden niet grafisch.
 - Bij SLAAGT overleeft de groep zes maanden.
-- De uiteindelijke redding wordt pas later onthuld.
-- Baseer gebeurtenissen op persoonlijkheden én rollen.
-- Persoonlijkheid bepaalt gedrag niet volledig.
-- Elke trek kan voordelen en nadelen hebben.
-- Laat bij latere pogingen merken wat beter gaat.
-- Gebruik niet telkens hetzelfde probleem.
-- Gebruik concrete situaties:
-  water, voedsel, kamp, verkenning, risico's,
-  stress, conflicten en samenwerking.
-- Houd alles kort en levendig.
-- Alles moet in het Nederlands zijn.
+- De uiteindelijke redding wordt pas later aan de leerlingen onthuld.
+- Houd het totale antwoord ongeveer tussen 300 en 400 woorden.
+- ALLES moet in het Nederlands zijn.
 
-Gebruik exact:
+Gebruik exact deze structuur:
 
-### De kust
-Maximaal 2 korte zinnen.
+### De eerste weken
+Vertel in ongeveer 4 à 5 zinnen hoe de groep
+het kamp organiseert, voedsel en water zoekt
+en met de eerste problemen omgaat.
+Noem concrete personen, hun rol en hun persoonlijkheid.
 
-### Het binnenland
-Maximaal 2 korte zinnen.
+### De eerste grote verkenning
+Vertel in ongeveer 4 à 5 zinnen wat er gebeurt wanneer
+ze verder het onbekende eiland intrekken.
+Laat zien hoe hun persoonlijkheden en rollen
+hun beslissingen beïnvloeden.
 
-### Het hoogste punt
-Maximaal 2 korte zinnen.
+### De beslissende weken
+Vertel in ongeveer 4 à 5 zinnen hoe de situatie moeilijker wordt.
+Laat eerdere keuzes gevolgen hebben.
+Maak duidelijk waarom de groep uiteindelijk wel of niet standhoudt.
 
 ### Uitkomst
-Maximaal 2 korte zinnen.
+Geef in maximaal 3 zinnen de toestand van de groep na zes maanden.
+Volg hierbij strikt de instructie over de verplichte uitkomst.
 
-### Waarom?
-- één kort punt
-- één kort punt
+### Wat maakte het verschil?
+Geef precies 3 korte punten in deze vorm:
+
+- **Naam — persoonlijkheidstrek / rol:** concreet gevolg.
 """
 
 
@@ -2789,9 +2721,9 @@ Maximaal 2 korte zinnen.
                             wijziging["naam"]
                         ][
                             wijziging["trek"]
-                        ] = (
-                            wijziging["nieuw"]
-                        )
+                        ] = wijziging[
+                            "nieuw"
+                        ]
 
 
                     st.session_state.aanpassingsgeschiedenis.append({
@@ -3030,9 +2962,6 @@ with st.container(
             help="Volgende scherm"
         ):
 
-            # De stap die je met deze knop
-            # verlaat telt als overgeslagen
-            # wanneer ze niet normaal voltooid werd.
             markeer_huidige_stap_als_overgeslagen()
 
 

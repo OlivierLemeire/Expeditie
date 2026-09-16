@@ -2216,29 +2216,38 @@ die lang genoeg kon samenwerken, verkennen en overleven.
 # BIJNA ONZICHTBARE NAVIGATIE RECHTSONDER
 # ==================================================
 
+# ==================================================
+# VERBORGEN NAVIGATIE RECHTSONDER
+# ==================================================
+
 st.markdown(
     """
     <style>
 
+    /* Het volledige geheime klikgebied */
     .st-key-geheime_nav {
         position: fixed;
-        right: 5px;
-        bottom: 5px;
-        width: 82px;
-        opacity: 0.025;
+        right: 10px;
+        bottom: 10px;
+        width: 130px;
+        padding: 15px;
+        opacity: 0.05;
         z-index: 999999;
-        transition: opacity 0.25s ease;
+        transition: opacity 0.2s ease;
     }
 
+    /* Als je met de muis in de rechteronderhoek komt */
     .st-key-geheime_nav:hover {
         opacity: 1;
     }
 
+    /* Kleine neutrale knoppen */
     .st-key-geheime_nav button {
-        min-height: 28px !important;
-        height: 28px !important;
-        padding: 0px 5px !important;
-        font-size: 12px !important;
+        min-height: 30px !important;
+        height: 30px !important;
+        padding: 0px 7px !important;
+        font-size: 14px !important;
+        border: 1px solid rgba(120,120,120,0.35) !important;
     }
 
     </style>
@@ -2247,9 +2256,7 @@ st.markdown(
 )
 
 
-with st.container(
-    key="geheime_nav"
-):
+with st.container(key="geheime_nav"):
 
     links, rechts = st.columns(2)
 
@@ -2266,9 +2273,7 @@ with st.container(
                 st.session_state.demo_stap - 1
             )
 
-            ga_naar_demo_stap(
-                nieuwe_stap
-            )
+            ga_naar_demo_stap(nieuwe_stap)
 
             st.rerun()
 
@@ -2280,8 +2285,6 @@ with st.container(
             help="Volgende scherm"
         ):
 
-            # De huidige stap telt als overgeslagen
-            # wanneer ze niet normaal werd voltooid.
             markeer_huidige_stap_als_overgeslagen()
 
             nieuwe_stap = min(
@@ -2289,8 +2292,6 @@ with st.container(
                 st.session_state.demo_stap + 1
             )
 
-            ga_naar_demo_stap(
-                nieuwe_stap
-            )
+            ga_naar_demo_stap(nieuwe_stap)
 
             st.rerun()

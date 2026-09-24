@@ -2454,11 +2454,12 @@ Volg hierbij strikt de verplichte uitkomst.
 Geef precies 3 korte punten:
 
 - **Naam — persoonlijkheidstrek / rol:** concreet gevolg.
+"""
 
 
-            with st.spinner(
-                "De expeditie wordt gesimuleerd..."
-            ):
+with st.spinner(
+    "De expeditie wordt gesimuleerd..."
+):
 
                 try:
 

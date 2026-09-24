@@ -2879,37 +2879,36 @@ die lang genoeg kon samenwerken, verkennen en overleven.
 # ==================================================
 # BIJNA ONZICHTBARE NAVIGATIE RECHTSONDER
 # ==================================================
-
 # ==================================================
 # BIJNA ONZICHTBARE NAVIGATIE RECHTSONDER
 # ==================================================
 
+css_geheime_nav = (
+    "<style>"
+    ".st-key-geheime_nav {"
+    "position: fixed;"
+    "right: 8px;"
+    "bottom: 8px;"
+    "width: 120px;"
+    "padding: 12px;"
+    "opacity: 0.04;"
+    "z-index: 999999;"
+    "transition: opacity 0.2s ease;"
+    "}"
+    ".st-key-geheime_nav:hover {"
+    "opacity: 1;"
+    "}"
+    ".st-key-geheime_nav button {"
+    "min-height: 29px !important;"
+    "height: 29px !important;"
+    "padding: 0px 6px !important;"
+    "font-size: 13px !important;"
+    "}"
+    "</style>"
+)
+
 st.markdown(
-    """
-<style>
-.st-key-geheime_nav {
-    position: fixed;
-    right: 8px;
-    bottom: 8px;
-    width: 120px;
-    padding: 12px;
-    opacity: 0.04;
-    z-index: 999999;
-    transition: opacity 0.2s ease;
-}
-
-.st-key-geheime_nav:hover {
-    opacity: 1;
-}
-
-.st-key-geheime_nav button {
-    min-height: 29px !important;
-    height: 29px !important;
-    padding: 0px 6px !important;
-    font-size: 13px !important;
-}
-</style>
-    """,
+    css_geheime_nav,
     unsafe_allow_html=True
 )
 
@@ -2931,9 +2930,7 @@ with st.container(key="geheime_nav"):
                 st.session_state.demo_stap - 1
             )
 
-            ga_naar_demo_stap(
-                nieuwe_stap
-            )
+            ga_naar_demo_stap(nieuwe_stap)
 
             st.rerun()
 
@@ -2952,8 +2949,6 @@ with st.container(key="geheime_nav"):
                 st.session_state.demo_stap + 1
             )
 
-            ga_naar_demo_stap(
-                nieuwe_stap
-            )
+            ga_naar_demo_stap(nieuwe_stap)
 
             st.rerun()
